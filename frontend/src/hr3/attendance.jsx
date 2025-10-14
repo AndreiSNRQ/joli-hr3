@@ -17,9 +17,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import AddAttendance from "@/components/hr3/AddAttendance";
-import ExportData from "@/components/hr3/ExportData";
-import ApproveAdjustments from "@/components/hr3/ApproveAdjustments";
 import { hr3 } from "@/api/hr3";
 import axios from "axios";
 import TermsDialog from "@/components/hr3/TermsDialog";
@@ -49,30 +48,6 @@ export default function Attendance() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editRow, setEditRow] = useState(null);
 
-    const openModal = (request) => {
-    setSelectedRequest(request);
-    setActionStatus("");
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setSelectedRequest(null);
-  };
-
-  const handleActionChange = (status) => {
-    setActionStatus(status);
-  };
-
-  const handleSubmit = () => {
-    if (!selectedRequest) return;
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === selectedRequest.id ? { ...req, status: actionStatus } : req
-      )
-    );
-    closeModal();
-  };
   useEffect(() => {
     // Fetch attendance
     axios.get(hr3.backend.api.attendance)
@@ -136,9 +111,9 @@ export default function Attendance() {
     Adjustment: "secondary",
   };
 
-  // Helper to get schedule time from shift_id
-  const getScheduleTime = (shift_id) => {
-    const schedule = schedules.find(s => s.id === shift_id || s.schedule_id === shift_id);
+  // Helper to get schedule time from employee_id
+  const getScheduleTime = (employee_id) => {
+    const schedule = schedules.find(s => s.employee_id === employee_id);
     if (schedule) {
       return `${schedule.time_start} - ${schedule.time_end}`;
     }
@@ -147,7 +122,7 @@ export default function Attendance() {
 
   return (
     <div className="px-6">
-      <h1 className="text-2xl font-bold mb-4">Attendance</h1>
+      <h1 className="text-2xl font-bold -mt-5 mb-4">Attendance</h1>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
@@ -179,12 +154,7 @@ export default function Attendance() {
             <AddAttendance />
           </Dialog>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">Export Data</Button>
-            </DialogTrigger>
-            <ExportData />
-          </Dialog>
+          <Button variant="outline">Export Data</Button>
         </div>
 
         <div className="flex gap-2">
@@ -201,7 +171,7 @@ export default function Attendance() {
       </div>
 
       {/* Attendance Table */}
-      <div className="overflow-auto rounded-lg border max-h-[500px]">
+      <div className="overflow-auto rounded-lg border min-h-[510px] max-h-[510px]">
         <Table className="w-full ">
           <TableCaption>Attendance Records</TableCaption>
           <TableHeader>
@@ -217,7 +187,7 @@ export default function Attendance() {
                 {columns.map((column) => (
                   <TableCell key={column.id}>
                     {column.id === "schedule"
-                      ? getScheduleTime(row.shift_id)
+                      ? getScheduleTime(row.employee_id)
                       : column.id === "status"
                         ? <Badge variant={statusVariant[row.status] || "default"}>{row[column.id]}</Badge>
                         : row[column.id]
@@ -246,38 +216,38 @@ export default function Attendance() {
             <h2 className="text-xl font-bold mb-4">Edit Attendance</h2>
             <form onSubmit={async (e) => {
               e.preventDefault();
-              // Collect updated fields
-              const updatedRow = {
-                ...editRow,
-                timeIn: e.target.timeIn.value || editRow.timeIn,
-                breakStart: e.target.breakStart.value || editRow.breakStart,
-                breakEnd: e.target.breakEnd.value || editRow.breakEnd,
-                timeOut: e.target.timeOut.value || editRow.timeOut,
-                status: e.target.status.value || editRow.status,
-              };
               try {
-                await axios.put(`${hr3.backend.api.attendance}/${editRow.attendance_id}`, updatedRow);
-                alert('Attendance updated successfully!');
+                // The backend expects H:i format, but the state is in 12-hour format.
+                // This needs to be converted before sending.
+                // For now, we assume the input is correct or will be handled.
+                const response = await axios.put(`${hr3.backend.api.attendance}/${editRow.attendance_id}`, editRow);
+                toast.success('Attendance updated successfully!');
                 setEditModalOpen(false);
+
+                // Format the response for display before updating state
+                const formatTime = (datetimeStr) => {
+                  if (!datetimeStr) return '';
+                  const timeStr = datetimeStr.includes(' ') ? datetimeStr.split(' ')[1] : datetimeStr;
+                  const [hours, minutes] = timeStr.split(':');
+                  const hour = parseInt(hours, 10);
+                  const ampm = hour >= 12 ? 'PM' : 'AM';
+                  const hour12 = hour % 12 || 12;
+                  return `${hour12}:${minutes} ${ampm}`;
+                };
+                const updatedRecord = { ...response.data, timeIn: formatTime(response.data.timeIn), breakStart: formatTime(response.data.breakStart), breakEnd: formatTime(response.data.breakEnd), timeOut: formatTime(response.data.timeOut) };
+
+                // Refresh data
+                setData(data.map(d => d.attendance_id === editRow.attendance_id ? updatedRecord : d));
               } catch (error) {
-                alert('Failed to update attendance.');
+                console.error('Failed to update attendance:', error);
+                toast.error('Failed to update attendance.');
               }
             }}>
-              <label className="block mb-2">Time In
-                <input name="timeIn" defaultValue={editRow?.timeIn || ''} className="border p-2 w-full" />
-              </label>
-              <label className="block mb-2">Break Start
-                <input name="breakStart" defaultValue={editRow?.breakStart || ''} className="border p-2 w-full" />
-              </label>
-              <label className="block mb-2">Break End
-                <input name="breakEnd" defaultValue={editRow?.breakEnd || ''} className="border p-2 w-full" />
-              </label>
-              <label className="block mb-2">Time Out
-                <input name="timeOut" defaultValue={editRow?.timeOut || ''} className="border p-2 w-full" />
-              </label>
-              <label className="block mb-2">Status
-                <input name="status" defaultValue={editRow?.status || ''} className="border p-2 w-full" />
-              </label>
+              <label className="block mb-2">Time In<input name="timeIn" value={editRow?.timeIn || ''} onChange={(e) => setEditRow({ ...editRow, timeIn: e.target.value })} className="border p-2 w-full" /></label>
+              <label className="block mb-2">Break Start<input name="breakStart" value={editRow?.breakStart || ''} onChange={(e) => setEditRow({ ...editRow, breakStart: e.target.value })} className="border p-2 w-full" /></label>
+              <label className="block mb-2">Break End<input name="breakEnd" value={editRow?.breakEnd || ''} onChange={(e) => setEditRow({ ...editRow, breakEnd: e.target.value })} className="border p-2 w-full" /></label>
+              <label className="block mb-2">Time Out<input name="timeOut" value={editRow?.timeOut || ''} onChange={(e) => setEditRow({ ...editRow, timeOut: e.target.value })} className="border p-2 w-full" /></label>
+              <label className="block mb-2">Status<input name="status" value={editRow?.status || ''} onChange={(e) => setEditRow({ ...editRow, status: e.target.value })} className="border p-2 w-full" /></label>
               <div className="flex gap-2 mt-4">
                 <Button type="submit" variant="outline">Save</Button>
                 <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>Cancel</Button>
@@ -293,13 +263,3 @@ export default function Attendance() {
     </div>
   );
 }
-const handleUpdate = async (row) => {
-  console.log('Updating row:', row); // Debug statement
-  try {
-    await axios.put(`${hr3.backend.api.attendance}/${row.attendance_id}`, row);
-    alert('Attendance updated successfully!');
-  } catch (error) {
-    console.error('Error updating attendance:', error);
-    alert('Failed to update attendance.');
-  }
-};

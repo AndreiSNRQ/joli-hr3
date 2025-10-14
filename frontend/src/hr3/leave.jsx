@@ -200,9 +200,9 @@ export default function Leave() {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="space-y-1">
-        <p className="text-sm text-muted-foreground">
+    <div className="px-4 -mt-4">
+      <div className="space-y-2">
+        <p className="text-lg text-muted-foreground py-2">
           AI Leave Processing & Shift Scheduling using spaCy NLP
         </p>
       </div>
@@ -214,11 +214,12 @@ export default function Leave() {
         </TabsList>
 
         {/* Requests */}
-        <TabsContent value="requests" className="space-y-4">
+        <TabsContent value="requests" className="">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="">
+              <div className="overflow-auto rounded-lg border min-h-[635px] max-h-[800px]">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-gray-100">
                   <TableRow>
                     <TableCell>Employee</TableCell>
                     <TableCell>Type</TableCell>
@@ -253,34 +254,35 @@ export default function Leave() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Balances */}
-        <TabsContent value="balances" className="space-y-4">
-          <Card>
-            <CardContent className="pt-6"></CardContent>
-            <h2 className="text-xl font-bold mt-8 mb-4">Leave Balances</h2>
-            <Table>
+        <TabsContent value="balances" className="">
+          <Card classname="-py-10">
+            <CardContent></CardContent>
+            <div className="overflow-auto rounded-lg border min-h-[600px] max-h-[800px]">
+            <Table className="">
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-gray-200" >
                   <TableCell>Employee</TableCell>
-                  <TableCell className="text-center" colSpan={3}>Vacation Leave</TableCell>
-                  <TableCell className="text-center" colSpan={3}>Sick Leave</TableCell>
-                  <TableCell className="text-center" colSpan={3}>Emergency Leave</TableCell>
+                  <TableCell className="text-center font-medium" colSpan={3}>Vacation Leave</TableCell>
+                  <TableCell className="text-center font-medium" colSpan={3}>Sick Leave</TableCell>
+                  <TableCell className="text-center font-medium" colSpan={3}>Emergency Leave</TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell></TableCell>
-                  <TableCell>Total</TableCell>
-                  <TableCell>Used</TableCell>
-                  <TableCell>Remaining</TableCell>
-                  <TableCell>Total</TableCell>
-                  <TableCell>Used</TableCell>
-                  <TableCell>Remaining</TableCell>
-                  <TableCell>Total</TableCell>
-                  <TableCell>Used</TableCell>
-                  <TableCell>Remaining</TableCell>
+                <TableRow className="bg-gray-100">
+                  <TableCell className="font-medium">Name</TableCell>
+                  <TableCell className="font-medium">Total</TableCell>
+                  <TableCell className="font-medium">Used</TableCell>
+                  <TableCell className="border-r font-medium">Remaining</TableCell>
+                  <TableCell className="font-medium">Total</TableCell>
+                  <TableCell className="font-medium">Used</TableCell>
+                  <TableCell className="border-r font-medium">Remaining</TableCell>
+                  <TableCell className="font-medium">Total</TableCell>
+                  <TableCell className="font-medium">Used</TableCell>
+                  <TableCell className="border-r font-medium">Remaining</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,6 +302,7 @@ export default function Leave() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </Card>
         </TabsContent>
 

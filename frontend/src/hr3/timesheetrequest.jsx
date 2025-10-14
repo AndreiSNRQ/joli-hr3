@@ -103,7 +103,7 @@ export default function TimesheetRequest() {
   };
 
   return (
-    <div>
+    <div className="h-full-mt-5 px-4">
       <div>
         <h1 className="text-2xl font-bold mb-4">Correction Request</h1>
         {/* Summary Cards */}
@@ -128,7 +128,7 @@ export default function TimesheetRequest() {
           </Card>
         </div>
       </div>
-      <div className="h-full overflow-auto" style={{ maxHeight: "500px", overflowY: "auto" }}>
+      <div className="h-full rounded-lg border min-h-[300px] max-h-[800px]">
         <Table className="w-full h-full">
           <TableCaption>Correction Requests</TableCaption>
           <TableHeader>

@@ -57,8 +57,23 @@ function AttendanceRequest() {
     setActionStatus(status);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedRequest) return;
+    // If status is approved, update attendance record
+    if (actionStatus === "approved") {
+      try {
+        await fetch(hr3.backend.api.attendance_update, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            attendance_id: selectedRequest.attendance_id,
+            [selectedRequest.type]: selectedRequest.proposed_time
+          })
+        });
+      } catch (err) {
+        console.error("Failed to update attendance record", err);
+      }
+    }
     setRequests((prev) =>
       prev.map((req) =>
         req.id === selectedRequest.id ? { ...req, status: actionStatus } : req
@@ -74,7 +89,7 @@ function AttendanceRequest() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 -mt-9">
       <h1 className="text-2xl font-bold mb-6">Attendance Requests</h1>
 
       {/* Analytics Section */}
@@ -84,7 +99,7 @@ function AttendanceRequest() {
             <CardTitle>Pending</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold text-yellow-600">
-            {analytics.pending}
+            {requests.filter(r => r.status === "pending").length}
           </CardContent>
         </Card>
         <Card>
@@ -92,7 +107,7 @@ function AttendanceRequest() {
             <CardTitle>Approved Today</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold text-green-600">
-            {analytics.approvedToday}
+            {requests.filter(r => r.status === "approved" && r.date === new Date().toISOString().slice(0,10)).length}
           </CardContent>
         </Card>
         <Card>
@@ -100,7 +115,7 @@ function AttendanceRequest() {
             <CardTitle>Rejected Today</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold text-red-600">
-            {analytics.rejectedToday}
+            {requests.filter(r => r.status === "rejected" && r.date === new Date().toISOString().slice(0,10)).length}
           </CardContent>
         </Card>
         <Card>
@@ -108,13 +123,13 @@ function AttendanceRequest() {
             <CardTitle>Total This Month</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold text-blue-600">
-            {analytics.totalThisMonth}
+            {requests.filter(r => r.date && r.date.startsWith(new Date().toISOString().slice(0,7))).length}
           </CardContent>
         </Card>
       </div>
 
       {/* Table Section */}
-      <div className="overflow-auto rounded-lg border max-h-[60vh]">
+      <div className="overflow-auto rounded-lg border min-h-[580px] max-h-[580px]">
         <Table className="w-full">
           <TableCaption>Attendance Requests</TableCaption>
           <TableHeader>
@@ -133,10 +148,12 @@ function AttendanceRequest() {
               <TableRow key={req.id} className="hover:bg-gray-50">
                 <TableCell className="text-center">{req.id}</TableCell>
                 <TableCell className="text-center">
-                  {req.employee?.full_name || req.employee_id}
+                  {req.employee?.name || req.employee_id}
                 </TableCell>
                 <TableCell className="text-center">{req.date}</TableCell>
-                <TableCell className="text-center">{req.type}</TableCell>
+                <TableCell className="text-center">{req.type
+
+                }</TableCell>
                 <TableCell className="text-center">{req.proposed_time}</TableCell>
                 <TableCell className="text-center">
                   <Badge variant={statusVariant[req.status] || "default"}>

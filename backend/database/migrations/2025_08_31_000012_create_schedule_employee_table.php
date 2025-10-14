@@ -9,7 +9,8 @@ class CreateScheduleEmployeeTable extends Migration
     public function up()
     {
         Schema::create('schedule_employee', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
+            // $table->unsignedBigInteger('schedule_id');
             $table->unsignedBigInteger('shift_id');
             $table->unsignedBigInteger('employee_id');
             $table->timestamps();

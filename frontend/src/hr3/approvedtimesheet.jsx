@@ -34,7 +34,7 @@ const columns = [
 
 // Default data in case API fails
 const defaultData = [
-  { employeeName: "John Doe", date: "2023-01-01", timeIn: "08:00", breakIn: "12:00", breakOut: "13:00", timeOut: "17:00", total: "8:00", schedule: "8:00-17:00" },
+  { employeeName: "John Doe", date: "2023-01-01", timeIn: "08:00", breakIn: "12:00", breakOut: "13:00", timeOut: "17:00", total: "8:00", status: "Approved", schedule: "8:00-17:00" },
 ];
 
 // Group employees by first record
@@ -101,7 +101,7 @@ export default function ApprovedTimesheet() {
   };
 
   return (
-    <div className="h-full overflow-auto" style={{ maxHeight: "500px", overflowY: "auto" }}>
+    <div className="h-full overflow-auto -mt-5 px-4">
       <h1 className="text-2xl font-bold mb-4">Approved Timesheets</h1>
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
@@ -118,16 +118,17 @@ export default function ApprovedTimesheet() {
           <CardContent className="text-3xl font-bold text-yellow-600">0</CardContent>
         </Card>
       </div>
-      <Table className="w-full h-full">
+      <div className="overflow-auto rounded-lg border min-h-[580px] max-h-[800px]">
+              <Table className="w-full">
         <TableCaption>Pending Timesheets</TableCaption>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-gray-100">
             {columns.map((column) => (
               <TableHead key={column.id}>{column.label}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="bg-white p-2">
           {(showAllRecords
             ? data.filter((row) => row.employeeName === currentEmployee?.employeeName)
             : uniqueEmployees
@@ -184,6 +185,7 @@ export default function ApprovedTimesheet() {
           ))}
         </TableBody>
       </Table>
+      </div>
       <div className="w-full justify-center flex">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
       </div>

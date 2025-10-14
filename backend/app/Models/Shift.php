@@ -12,10 +12,13 @@ class Shift extends Model
     protected $fillable = [
         'type',
         'heads',
+        'days', // Added days to fillable
+        'department', // Added department to fillable
         'time_start',
         'time_end',
         'date_from',
-        'date_to'
+        'date_to',
+        'shift_name'
     ];
 
     public function schedules()

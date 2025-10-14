@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   DialogContent,
   DialogHeader,
@@ -5,7 +6,8 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { HR3_API } from "@/api/axios";
+import { hr3 } from "@/api/hr3";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { hr3 } from "@/api/hr3";
 
 export default function AddAttendance() {
   const [employees, setEmployees] = useState([]);
@@ -45,7 +46,7 @@ export default function AddAttendance() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get(hr3.backend.api.employees);
+        const response = await HR3_API.get(hr3.backend.api.employees);
         if (!response.data) {
           throw new Error('No data received from API');
         }
@@ -87,7 +88,7 @@ const handleSubmit = async (e) => {
     if (formData.breakIn) payload.break_start = formData.breakIn;
     if (formData.breakOut) payload.break_end = formData.breakOut;
     // create_at is omitted so backend can use now()
-    const response = await axios.post('http://localhost:8095/api/attendance', payload);
+    const response = await axios.post(hr3.backend.api.attendance, payload);
     if (response.status === 201) {
       const data = response.data;
       alert(`Attendance created for ${data.name} on ${data.date}\nClock In: ${data.timeIn}\nClock Out: ${data.timeOut}`);
@@ -102,7 +103,7 @@ const handleSubmit = async (e) => {
 
   useEffect(() => {
     if (selectedEmployee) {
-      axios.get(`http://localhost:8095/api/attendance?employee_id=${selectedEmployee}`)
+      axios.get(`${hr3.backend.api.attendance}?employee_id=${selectedEmployee}`)
         .then(response => {
           // Ensure attendanceRecords is always an array
           const data = response.data;

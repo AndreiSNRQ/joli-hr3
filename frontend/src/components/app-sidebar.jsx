@@ -104,11 +104,6 @@ const data = {
             icon: CalendarPlusIcon,
           },
           {
-            title: "Schedule Management",
-            url: '/shift',
-            icon: CalendarCheckIcon,
-          },
-          {
             title: "Swap Requests",
             url: '/scheduleswap',
             icon: FileIcon,

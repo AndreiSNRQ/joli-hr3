@@ -6,7 +6,7 @@ use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\ClaimsController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TimesheetController;
-use App\Http\Controllers\UnpublishScheduleController;
+// use App\Http\Controllers\UnpublishScheduleController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\EmployeeScheduleController;
 use App\Http\Controllers\AttendanceCorrectionRequestController;
@@ -41,7 +41,7 @@ Route::post('/attendance', [AttendanceController::class, 'store']);
 Route::put('/attendance/{attendance_id}', [AttendanceController::class, 'update']);
 // Route::delete('/attendance/{id}', [AttendanceController::class, 'destroy']);
 // attendnce request
-Route::apiResource('/attendance-correction-requests',AttendanceCorrectionRequestController::class);
+Route::apiResource('/attendance-correction-request',AttendanceCorrectionRequestController::class);
 // Route::get('/attendance-correction-request', [AttendanceCorrectionRequestController::class, 'index']);
 
 
@@ -55,8 +55,11 @@ Route::get('/schedule', [ScheduleController::class, 'index']);
 Route::post('/employee-schedule', [EmployeeScheduleController::class, 'store']);
 Route::get('/shift', [ShiftController::class, 'index']);
 Route::post('/shift', [ShiftController::class, 'store']);
-Route::get('/unpublish-schedule', [ScheduleController::class, 'getUnpublishedSchedules']);
-Route::get('/unpublish-schedule-detailed', [UnpublishScheduleController::class, 'index']);
+// shift data only
+Route::get('/shift_data_only', [ShiftController::class, 'shiftDataOnly']);
+Route::delete('/shift/{id}', [ShiftController::class, 'destroy']);
+Route::get('/publish-schedule', [ScheduleController::class, 'getPublishedSchedules']);
+Route::post('/publish-schedule-detailed', [ScheduleController::class, 'publishScheduleDetailed']);
 
 // LEAVE MANAGEMENT
 Route::get('/leave', [LeaveController::class, 'index']);

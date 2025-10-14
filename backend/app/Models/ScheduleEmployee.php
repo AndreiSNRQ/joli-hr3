@@ -10,13 +10,13 @@ class ScheduleEmployee extends Model
     protected $primaryKey = 'id';
     
     protected $fillable = [
-        'employee_schedule_id',
-        'employee_id'
+        'employee_id',
+        'shift_id',
     ];
 
     public function schedule()
     {
-        return $this->belongsTo(Schedule::class, 'employee_schedule_id');
+        return $this->belongsTo(Schedule::class, 'schedule_id');
     }
     public function employee()
     {

@@ -36,6 +36,8 @@ export const hr3 = {
             employees: `${backendUri}/api/employees`,
             unpublish_schedule: `${backendUri}/api/unpublish-schedule-detailed`,
             shift: `${backendUri}/api/shift`,
+            shift_data_only: `${backendUri}/api/shift_data_only`,
+            publish_schedule: `${backendUri}/api/publish-schedule-detailed`,
             employee_schedule: `${backendUri}/api/employee-schedule`,
             attendance_correction_requests: `${backendUri}/api/attendance-correction-request`,
         },

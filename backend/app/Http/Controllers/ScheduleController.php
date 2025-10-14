@@ -79,7 +79,8 @@ class ScheduleController extends Controller
                 $type = 'custom';
             }
 
-            $shift = Schedule::create([
+            // 1. Create the shift (you may have a Shift model/table, adjust as needed)
+            $shift = \App\Models\Shift::create([
                 'type' => $type,
                 'heads' => $validated['heads'],
                 'time_start' => date("H:i:s", strtotime($validated['time_start'])),
@@ -89,10 +90,30 @@ class ScheduleController extends Controller
                 'shift_status' => 'not active'
             ]);
 
-            $shift->employees()->sync($validated['employee_ids']);
-            // Removed logic for unpublish_schedule insertion
+            // 2. Create schedule_employee records and get their IDs
+            $scheduleEmployeeIds = [];
+            foreach ($validated['employee_ids'] as $employee_id) {
+                $scheduleEmployee = \App\Models\ScheduleEmployee::create([
+                    'employee_id' => $employee_id,
+                    'shift_id' => $shift->id
+                ]);
+                $scheduleEmployeeIds[] = $scheduleEmployee->id;
+            }
 
-            return response()->json($shift, 201);
+            // 3. Create the schedule and save shift_id and schedule_employee_id
+            $schedule = \App\Models\Schedule::create([
+                'shift_id' => $shift->id,
+                'schedule_employee_id' => json_encode($scheduleEmployeeIds), // store as JSON array
+                'type' => $type,
+                'heads' => $validated['heads'],
+                'time_start' => date("H:i:s", strtotime($validated['time_start'])),
+                'time_end' => date("H:i:s", strtotime($validated['time_end'])),
+                'date_from' => $validated['date_from'],
+                'date_to' => $validated['date_to'],
+                'shift_status' => 'not active'
+            ]);
+
+            return response()->json($schedule, 201);
         } catch (\Exception $e) {
             \Log::error('Error in ScheduleController@store: ' . $e->getMessage(), [
                 'exception' => $e,

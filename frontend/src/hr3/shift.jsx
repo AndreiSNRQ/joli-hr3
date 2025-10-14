@@ -11,21 +11,78 @@ import TermsDialog from "@/components/hr3/TermsDialog";
 
 
 /* -------------------------- Dummy Employees -------------------------- */
-// const dummyEmployees = [
-//   { id: 1, name: "John Doe", department: "IT", role: "Developer" },
-//   { id: 2, name: "Jane Smith", department: "IT", role: "System Admin" },
-//   { id: 3, name: "Alice Johnson", department: "IT", role: "Help Desk" },
-//   { id: 4, name: "Bob Wilson", department: "Sales/Support", role: "Sales Rep" },
-//   { id: 5, name: "Carol Brown", department: "Sales/Support", role: "Support Agent" },
-//   { id: 6, name: "Dave Miller", department: "Sales/Support", role: "Support Agent" },
-//   { id: 7, name: "Eve Thomas", department: "HR", role: "HR Manager" },
-//   { id: 8, name: "Frank White", department: "HR", role: "HR Assistant" },
-//   { id: 9, name: "Grace Lee", department: "Finance", role: "Accountant" },
-//   { id: 10, name: "Henry Clark", department: "Finance", role: "Payroll" },
-//   { id: 11, name: "Dr. Irene Gray", department: "ER", role: "Doctor" },
-//   { id: 12, name: "Jack Green", department: "ER", role: "Nurse" },
-//   { id: 13, name: "Karen Hall", department: "ER", role: "Nurse" },
-// ];
+const Employees = [
+  { id: 1, name: "John Doe", department: "IT", role: "Developer" },
+  { id: 2, name: "Jane Smith", department: "IT", role: "System Admin" },
+  { id: 3, name: "Alice Johnson", department: "IT", role: "Help Desk" },
+  { id: 4, name: "Bob Wilson", department: "Sales/Support", role: "Sales Rep" },
+  { id: 5, name: "Carol Brown", department: "Sales/Support", role: "Support Agent" },
+  { id: 6, name: "Dave Miller", department: "Sales/Support", role: "Support Agent" },
+  { id: 7, name: "Eve Thomas", department: "HR", role: "HR Manager" },
+  { id: 8, name: "Frank White", department: "HR", role: "HR Assistant" },
+  { id: 9, name: "Grace Lee", department: "Finance", role: "Accountant" },
+  { id: 10, name: "Henry Clark", department: "Finance", role: "Payroll" },
+  { id: 11, name: "Dr. Irene Gray", department: "ER", role: "Doctor" },
+  { id: 12, name: "Jack Green", department: "ER", role: "Nurse" },
+  { id: 13, name: "Karen Hall", department: "ER", role: "Nurse" },
+];
+
+const shift=[
+  {
+    id: 1,
+    name: "Day Shift",
+    startTime: "09:00",
+    endTime: "17:00",
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    date_from: "2025-08-31",
+    date_to: "2025-09-06",
+  },
+  {
+    id: 2,
+    name: "Night Shift",
+    startTime: "17:00",
+    endTime: "09:00",
+    days: ["Saturday", "Sunday"],
+    date_from: "2025-08-31",
+    date_to: "2025-09-06",
+  },
+  {
+    id: 3,
+    name: "Custom Shift",
+    startTime: "",
+    endTime: "",
+    days: [],
+  }
+]
+const schedule_employee=[
+  {
+    id: 1,
+    schedule_id: 1,
+    shift_id: 1,
+    employee_id: 1,
+  },
+  {
+    id: 2,
+    schedule_id: 1,
+    shift_id: 1,
+    employee_id: 2,
+  },
+  {
+    id: 3,
+    schedule_id: 1,
+    shift_id: 1,
+    employee_id: 3,
+  },
+]
+
+const schedule=[
+  {
+    id: 1,
+    schedule_id:1,
+    shift_id: 1,
+
+  },
+]
 
 /* -------------------------- Helpers -------------------------- */
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -416,6 +473,7 @@ const publishUnpublishedShift = async (schedule_id) => {
         const emp = employees.find(e => e.name === name);
         return emp ? emp.employee_id : null;
       }).filter(Boolean),
+      days: relatedShifts.map(s => s.day),
       time_start: shift.time_start.slice(0,5), // Ensure HH:mm format
       time_end: shift.time_end.slice(0,5),     // Ensure HH:mm format
       date_from: shift.date_from,
@@ -436,8 +494,8 @@ const publishUnpublishedShift = async (schedule_id) => {
   return (
     <div className="p-6 space-y-6">
       {/* AI Shift Analysis */}
-      <div className="p-4 border rounded bg-white shadow">
-        <h2 className="text-lg font-bold">AI Shift Analysis</h2>
+      {/* <div className="p-4 border rounded bg-white shadow">
+        <h2 className="text-lg font-bold">A Shift Analysis</h2>
         <label htmlFor="aiTextInput" className="block text-sm font-medium text-gray-700 mb-1">Shift Description</label>
         <Textarea
           id="aiTextInput"
@@ -470,9 +528,10 @@ const publishUnpublishedShift = async (schedule_id) => {
             ))}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Shifts & Schedule Publishing */}
+ {/* Shifts & Schedule Publishing */}
       <div className="p-4 border rounded bg-white shadow">
         <h2 className="text-lg font-bold">Shifts & Schedule Publishing</h2>
         {unpublishedShifts.length === 0 ? (
@@ -528,6 +587,7 @@ const publishUnpublishedShift = async (schedule_id) => {
                       <TableCell>{[...new Set(s.employee_departments)].join(", ")}</TableCell>
                       <TableCell>{s.employee_names.join(", ")}</TableCell>
                       <TableCell>{s.date_from} → {s.date_to}</TableCell>
+                      <TableCell>{s.status}</TableCell>
                       <TableCell>
                         <Button
                           size="sm"
@@ -543,7 +603,7 @@ const publishUnpublishedShift = async (schedule_id) => {
                               department: [...new Set(s.employee_departments)],
                               assigned_employees: s.employee_names.map(name => {
                                 const emp = employees.find(e => e.name === name);
-                                return emp ? emp : { id: null, name };
+                                return emp ? emp : { employee_id: null, name };
                               }),
                               schedule_id: s.schedule_id,
                             })
@@ -575,75 +635,30 @@ const publishUnpublishedShift = async (schedule_id) => {
 {/* Published Shifts as Calendar */}
 <div className="p-4 border rounded bg-white shadow">
   <h2 className="text-lg font-bold">Published Shifts & Schedules</h2>
-  {publishedShifts.length === 0 ? (
-    <p className="text-gray-500">No active shifts.</p>
-  ) : (
-    <div className="overflow-x-auto">
-      <Table className="min-w-[900px]">
-        <TableHeader>
-          <TableRow>
-            <TableCell className="font-bold">Department</TableCell>
-            {DAYS.map((day) => (
-              <TableCell key={day} className="font-bold text-center">
-                {day}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {deptLexicon.map((dept) => (
-            <TableRow key={dept.label}>
-              <TableCell className="font-semibold">{dept.label}</TableCell>
-              {DAYS.map((day) => {
-                const shiftsForDay = publishedShifts.filter(
-                  (s) =>
-                    (Array.isArray(s.department) ? s.department : [s.department ?? ""]).includes(dept.label) &&
-                    (Array.isArray(s.days) ? s.days : [s.days ?? ""]).includes(day)
-                );
-                return (
-                  <TableCell key={day} className="align-top">
-                    {shiftsForDay.length === 0 ? (
-                      <span className="text-gray-400 text-sm">—</span>
-                    ) : (
-                      <div className="space-y-2">
-                        {shiftsForDay.map((shift, idx) => (
-                          <div
-                            key={idx}
-                            className="p-2 rounded bg-blue-50 border text-sm text-center"
-                          >
-                            <div className="flex justify-between">
-                              <p className="font-medium">{shift.shift_name}
-                              </p>
-                              <span
-                                className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${
-                                  shift.status === "Active"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-200 text-gray-700"
-                                }`}
-                              >
-                                {shift.status}
-                              </span>
-                            </div>
-                            <p>
-                              {shift.start_time} - {shift.end_time}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {shift.assigned_employees?.map((e) => e.name).join(", ") || "No employees"}
-                            </p>
-                            
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )}
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableCell>Shift Name</TableCell>
+        <TableCell>Department</TableCell>
+        <TableCell>Headcount</TableCell>
+        <TableCell>Days</TableCell>
+        <TableCell>Time</TableCell>
+        <TableCell>Employees</TableCell>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {sampleShifts.map((shift) => (
+        <TableRow key={shift.shift_id}>
+          <TableCell>{shift.shift_name}</TableCell>
+          <TableCell>{shift.department.join(", ")}</TableCell>
+          <TableCell>{shift.headcount}</TableCell>
+          <TableCell>{shift.days.join(", ")}</TableCell>
+          <TableCell>{shift.start_time} - {shift.end_time}</TableCell>
+          <TableCell>{shift.assigned_employees.map(e => e.name).join(", ")}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
 </div>
 
       {/* History */}
@@ -799,4 +814,88 @@ const publishUnpublishedShift = async (schedule_id) => {
       <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
     </div>
   );
+}
+
+// Sample shift data for display
+const sampleShifts = [
+  {
+    shift_id: 1,
+    shift_name: "Morning Shift",
+    department: ["IT"],
+    headcount: 3,
+    days: ["Monday", "Tuesday", "Wednesday"],
+    start_time: "08:00",
+    end_time: "12:00",
+    start_date: "2024-09-02",
+    end_date: "2024-09-04",
+    assigned_employees: [
+      { employee_id: 101, name: "John Doe" },
+      { employee_id: 102, name: "Jane Smith" },
+      { employee_id: 103, name: "Alice Johnson" }
+    ]
+  },
+  {
+    shift_id: 2,
+    shift_name: "Afternoon Shift",
+    department: ["HR"],
+    headcount: 2,
+    days: ["Thursday", "Friday"],
+    start_time: "13:00",
+    end_time: "17:00",
+    start_date: "2024-09-05",
+    end_date: "2024-09-06",
+    assigned_employees: [
+      { employee_id: 104, name: "Eve Thomas" },
+      { employee_id: 105, name: "Frank White" }
+    ]
+  }
+];
+
+// Example usage: Display sample shifts in a simple table
+<div className="p-4 border rounded bg-white shadow">
+  <h2 className="text-lg font-bold">Sample Shifts</h2>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableCell>Shift Name</TableCell>
+        <TableCell>Department</TableCell>
+        <TableCell>Headcount</TableCell>
+        <TableCell>Days</TableCell>
+        <TableCell>Time</TableCell>
+        <TableCell>Employees</TableCell>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {sampleShifts.map((shift) => (
+        <TableRow key={shift.shift_id}>
+          <TableCell>{shift.shift_name}</TableCell>
+          <TableCell>{shift.department.join(", ")}</TableCell>
+          <TableCell>{shift.headcount}</TableCell>
+          <TableCell>{shift.days.join(", ")}</TableCell>
+          <TableCell>{shift.start_time} - {shift.end_time}</TableCell>
+          <TableCell>{shift.assigned_employees.map(e => e.name).join(", ")}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
+
+// Fetch schedules with status="not active"
+function ShiftComponent() {
+  const [schedules, setSchedules] = useState([]);
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        const response = await fetch("/api/schedule");
+        const data = await response.json();
+        // Filter schedules with status="not active"
+        const inactiveSchedules = data.data.filter(schedule => schedule.shift_status === "not active" || schedule.status === "not active");
+        setSchedules(inactiveSchedules);
+      } catch (error) {
+        console.error("Failed to fetch schedules:", error);
+      }
+    };
+    fetchSchedules();
+  }, []);
 }

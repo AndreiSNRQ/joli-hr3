@@ -1,13 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { hr3 } from "@/api/hr3";
-import toast from 'react-hot-toast';
-import { Table, TableHeader, TableBody, TableRow, TableCell, } from "@/components/ui/table";
+import toast from "react-hot-toast";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import TermsDialog from "@/components/hr3/TermsDialog";
+import { data } from "react-router";
+import AddShiftModal from "@/components/hr3/AddShiftModal";
+import EditShiftModal from "@/components/hr3/EditShiftModal";
+
+
 
 /* -------------------------- Dummy Employees -------------------------- */
 // const dummyEmployees = [
@@ -27,11 +44,25 @@ import TermsDialog from "@/components/hr3/TermsDialog";
 // ];
 
 /* -------------------------- Helpers -------------------------- */
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 const deptLexicon = [
   { rx: /\b(hr|human\s*resources)\b/i, label: "HR" },
-  { rx: /\b(it|tech|engineering|developer|engineer|sysadmin|help\s*desk)\b/i, label: "IT" },
-  { rx: /\b(sales|marketing|customer\s*(service|support)|call\s*center|support)\b/i, label: "Logistics" },
+  {
+    rx: /\b(it|tech|engineering|developer|engineer|sysadmin|help\s*desk)\b/i,
+    label: "IT",
+  },
+  {
+    rx: /\b(sales|marketing|customer\s*(service|support)|call\s*center|support)\b/i,
+    label: "Logistics",
+  },
   { rx: /\b(er|emergency|ward|triage|clinic|nurse|doctor)\b/i, label: "ER" },
   { rx: /\b(finance|accounting|payroll)\b/i, label: "Finance" },
 ];
@@ -46,7 +77,7 @@ function analyzeShift(input) {
     start_time: "",
     end_time: "",
     department: [], // multiple department
-    headcount: 1,
+    heads: 1,
     days: [],
     description: "",
     start_date: "",
@@ -73,7 +104,7 @@ function analyzeShift(input) {
     if (text.includes(d.toLowerCase().slice(0, 3))) {
       result.days.push(d);
     }
-    }
+  }
   if (result.days.length === 0) {
     result.days = DAYS;
   }
@@ -93,9 +124,11 @@ function analyzeShift(input) {
   }
 
   // Detect headcount
-  const countMatch = input.match(/\b(\d+)\s*(staff|people|employees?|person)?/i);
+  const countMatch = input.match(
+    /\b(\d+)\s*(staff|people|employees?|person)?/i
+  );
   if (countMatch) {
-    result.headcount = parseInt(countMatch[1], 10);
+    result.heads = parseInt(countMatch[1], 10);
   }
 
   // Detect duration (weeks)
@@ -105,7 +138,15 @@ function analyzeShift(input) {
 
   // Smart start/end date alignment
   if (result.days.length > 0) {
-    const daysOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     const todayIdx = now.getDay();
     const firstDayIdx = daysOfWeek.indexOf(result.days[0]);
     const lastDayIdx = daysOfWeek.indexOf(result.days[result.days.length - 1]);
@@ -127,8 +168,12 @@ function analyzeShift(input) {
   result.shift_name = `${result.department.join(", ")} Shift`;
 
   result.description =
-    `Shift from ${result.start_time || "N/A"} to ${result.end_time || "N/A"} on ` +
-    `${result.days.length ? result.days.join(",") : "N/A"} for ${result.headcount} staff. ` +
+    `Shift from ${result.start_time || "N/A"} to ${
+      result.end_time || "N/A"
+    } on ` +
+    `${result.days.length ? result.days.join(",") : "N/A"} for ${
+      result.heads
+    } staff. ` +
     `Department: ${result.department.join(", ")}. ` +
     `Duration: ${result.start_date} → ${result.end_date}`;
 
@@ -136,8 +181,6 @@ function analyzeShift(input) {
     recommendations: [result],
   };
 }
-
-
 
 /* -------------------------- Component -------------------------- */
 export default function Schedule() {
@@ -152,89 +195,106 @@ export default function Schedule() {
   const [aiResult, setAiResult] = useState(null);
   const [publishingShifts, setPublishingShifts] = useState([]);
   const [publishedShifts, setPublishedShifts] = useState([]);
-  const [unpublishedShifts, setUnpublishedShifts] = useState([]);
+  const [savedShifts, setSavedShifts] = useState([]);
   const [openAiModal, setOpenAiModal] = useState(false);
   const [openPublishModal, setOpenPublishModal] = useState(false);
   const [openTermsDialog, setOpenTermsDialog] = useState(false);
 
-  
   // Fetch employees and their schedules from backend
+  const fetchEmployeesAndSchedules = async () => {
+    try {
+      // Fetch employees first
+      const employeesResponse = await axios.get(hr3.backend.api.employees);
+      let employeesList = [];
+
+      if (!employeesResponse.data) {
+        throw new Error("Invalid employees API response");
+      }
+
+      if (Array.isArray(employeesResponse.data)) {
+        employeesList = employeesResponse.data;
+      } else if (
+        employeesResponse.data &&
+        Array.isArray(employeesResponse.data.data)
+      ) {
+        employeesList = employeesResponse.data.data;
+      } else {
+        throw new Error("Unexpected employees data format");
+      }
+      setEmployees(employeesList);
+
+      // Fetch only published schedules
+      const publishedSchedulesResponse = await axios.get(
+        hr3.backend.api.shift_data_only
+      );
+      let publishedSchedulesList = [];
+
+      if (!publishedSchedulesResponse.data.success) {
+        throw new Error(
+          publishedSchedulesResponse.data.message ||
+            "Failed to fetch published schedules"
+        );
+      }
+
+      if (Array.isArray(publishedSchedulesResponse.data.data)) {
+        publishedSchedulesList = publishedSchedulesResponse.data.data.map(
+          (backend) => ({
+            id: backend.shift_id,
+            type: backend.type,
+            heads: backend.heads,
+            start_time: backend.time_start,
+            end_time: backend.time_end,
+            date_from: backend.date_from,
+            date_to: backend.date_to,
+            employee_id: backend.employee_id,
+            employee_name: backend.employee_name,
+            department: backend.department,
+            days: backend.days,
+            status: backend.status,
+            assigned_employees: backend.assigned_employees || [],
+            shift_name: backend.shift_name || backend.type || "",
+          })
+        );
+      } else if (Array.isArray(publishedSchedulesResponse.data)) {
+        publishedSchedulesList = publishedSchedulesResponse.data.map(
+          (backend) => ({
+            id: backend.shift_id,
+            type: backend.type,
+            heads: backend.heads,
+            start_time: backend.time_start,
+            end_time: backend.time_end,
+            date_from: backend.date_from,
+            date_to: backend.date_to,
+            employee_id: backend.employee_id,
+            employee_name: backend.employee_name,
+            department: backend.department,
+            days: backend.days,
+            status: backend.status,
+            assigned_employees: backend.assigned_employees || [],
+            shift_name: backend.shift_name || backend.type || "",
+          })
+        );
+      }
+      setPublishedShifts(publishedSchedulesList);
+
+      // Fetch only shift data (saved shifts) using shiftDataOnly endpoint
+      const savedShiftsResponse = await axios.get(
+        hr3.backend.api.shift_data_only
+      );
+      let savedShiftsList = [];
+      if (Array.isArray(savedShiftsResponse.data)) {
+        savedShiftsList = savedShiftsResponse.data;
+      } else if (Array.isArray(savedShiftsResponse.data?.data)) {
+        savedShiftsList = savedShiftsResponse.data.data;
+      }
+      setSavedShifts(savedShiftsList);
+      console.log("✅ Loaded saved shifts (shiftDataOnly):", savedShiftsList);
+    } catch (error) {
+      console.error("fetching employees or schedules:", error);
+      toast.error("Failed to fetch employees or schedules. Please try again.");
+    }
+  };
   useEffect(() => {
-    const fetchEmployeesAndSchedules = async () => {
-      try {
-        // Fetch employees first
-        const employeesResponse = await axios.get(hr3.backend.api.employees);
-        let employeesList = [];
-        
-        if (!employeesResponse.data) {
-          throw new Error('Invalid employees API response');
-        }
-        
-        if (Array.isArray(employeesResponse.data)) {
-          employeesList = employeesResponse.data;
-        } else if (employeesResponse.data && Array.isArray(employeesResponse.data.data)) {
-          employeesList = employeesResponse.data.data;
-        } else {
-          throw new Error('Unexpected employees data format');
-        }
-        setEmployees(employeesList);
-
-        // Then fetch schedules
-        const schedulesResponse = await axios.get(hr3.backend.api.schedule);
-        let schedulesList = [];
-        
-        if (!schedulesResponse.data.success) {
-          throw new Error(schedulesResponse.data.message || 'Failed to fetch schedules');
-        }
-        
-        if (Array.isArray(schedulesResponse.data.data)) {
-          schedulesList = schedulesResponse.data.data.map(backend => ({
-            id: backend.shift_id,
-            type: backend.type,
-            heads: backend.heads,
-            start_time: backend.time_start,
-            end_time: backend.time_end,
-            date_from: backend.date_from,
-            date_to: backend.date_to,
-            employee_id: backend.employee_id,
-            employee_name: backend.employee_name,
-            department: backend.department,
-          }));
-        } else if (Array.isArray(schedulesResponse.data)) {
-          schedulesList = schedulesResponse.data.map(backend => ({
-            id: backend.shift_id,
-            type: backend.type,
-            heads: backend.heads,
-            start_time: backend.time_start,
-            end_time: backend.time_end,
-            date_from: backend.date_from,
-            date_to: backend.date_to,
-            employee_id: backend.employee_id,
-            employee_name: backend.employee_name,
-            department: backend.department,
-          }));
-        }
-        setPublishedShifts(schedulesList);
-
-        // Fetch unpublished schedules (robust handling)
-        const unpublishedResponse = await axios.get(hr3.backend.api.unpublish_schedule);
-        let unpublishedList = [];
-
-        if (Array.isArray(unpublishedResponse.data)) {
-          unpublishedList = unpublishedResponse.data;
-        } else if (Array.isArray(unpublishedResponse.data?.data)) {
-          unpublishedList = unpublishedResponse.data.data;
-        }
-
-        if (unpublishedList.length > 0) {
-          setUnpublishedShifts(unpublishedList);
-          console.log("✅ Loaded unpublished shifts:", unpublishedList);
-        }} catch (error) {
-  console.error('Error fetching employees or schedules:', error);
-  toast.error('Failed to fetch employees or schedules. Please try again.');
-}
-
-    };
     fetchEmployeesAndSchedules();
   }, []);
 
@@ -243,6 +303,7 @@ export default function Schedule() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [history, setHistory] = useState([]);
   const [openModal, setOpenModal] = React.useState(false);
+  const [deletedShiftId, setDeletedShiftId] = useState(null);
 
   const runAnalysis = () => {
     if (!aiText.trim()) return;
@@ -253,14 +314,22 @@ export default function Schedule() {
   const handleOpenPublishModal = (shift, index = null) => {
     setModalShift({
       ...shift,
-      assigned_employees: Array.isArray(shift.assigned_employees) 
-        ? [...shift.assigned_employees.filter(e => e && e.employee_id)] 
+      assigned_employees: Array.isArray(shift.assigned_employees)
+        ? [...shift.assigned_employees.filter((e) => e && e.employee_id)]
         : [],
-      headcount: shift.headcount || 1,
-      department: [...(shift.department || ['General'])],
-      days: [...(shift.days || [0,1,2,3,4])],
-      start_date: shift.start_date || new Date().toISOString().split('T')[0],
-      end_date: shift.end_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      heads: shift.heads || 1,
+      department: Array.isArray(shift.department)
+        ? shift.department
+        : (shift.department || "").split(",").map(dep => dep.trim()).filter(Boolean),
+      days: Array.isArray(shift.days)
+        ? shift.days
+        : (shift.days || "").split(",").map(day => day.trim()).filter(Boolean),
+      start_date: shift.start_date || new Date().toISOString().split("T")[0],
+      end_date:
+        shift.end_date ||
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
     });
     setEditingIndex(index);
     setOpenModal(true);
@@ -268,93 +337,110 @@ export default function Schedule() {
 
   const savePublishing = async () => {
     if (!modalShift) {
-      console.error('No modalShift data available');
+      console.error("No modalShift data available");
       return;
     }
-    
+
     // Validate required fields
     if (!modalShift.shift_name) {
-      toast.error('Shift type is required');
-      console.log('Validation failed: Shift type is required');
+      toast.error("Shift type is required");
       return;
     }
-    
     if (!modalShift.start_time || !modalShift.end_time) {
-      toast.error('Start and end times are required');
-      console.log('Validation failed: Start and end times are required');
+      toast.error("Start and end times are required");
       return;
     }
-    
     if (!modalShift.start_date || !modalShift.end_date) {
-      toast.error('Start and end dates are required');
-      console.log('Validation failed: Start and end dates are required');
+      toast.error("Start and end dates are required");
       return;
     }
-    
-    // Validate at least one employee is selected
-    const hasSelectedEmployees = modalShift.assigned_employees && 
-      modalShift.assigned_employees.length > 0 &&
-      modalShift.assigned_employees.some(emp => emp && emp.employee_id !== '');
-    
-    if (!hasSelectedEmployees) {
-      // Check if there are any selected employees that might not be in the array yet
-      const selectedCount = Array.from(document.querySelectorAll('select[id^="employeeSelect-"]'))
-        .filter(select => select.value !== '').length;
-      
-      if (selectedCount === 0) {
-        toast.error('At least one employee must be selected');
-        console.log('Validation failed: No valid employees selected', modalShift.assigned_employees);
-        return;
-      }
+
+    // Validate time format HH:mm
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(modalShift.start_time)) {
+      toast.error("Start time must be in HH:mm format (e.g., 13:00)");
+      return;
     }
-    
+    if (!timeRegex.test(modalShift.end_time)) {
+      toast.error("End time must be in HH:mm format (e.g., 18:00)");
+      return;
+    }
+    // Validate end time is after start time
+    const [startHour, startMin] = modalShift.start_time.split(":").map(Number);
+    const [endHour, endMin] = modalShift.end_time.split(":").map(Number);
+    if (endHour < startHour || (endHour === startHour && endMin <= startMin)) {
+      toast.error("End time must be after start time");
+      return;
+    }
+    // const hasSelectedEmployees = modalShift.assigned_employees &&
+    //   modalShift.assigned_employees.length > 0 &&
+    //   modalShift.assigned_employees.some(emp => emp && emp.employee_id !== '');
+
+    // if (!hasSelectedEmployees) {
+    //   // Check if there are any selected employees that might not be in the array yet
+    //   const selectedCount = Array.from(document.querySelectorAll('select[id^="employeeSelect-"]'))
+    //     .filter(select => select.value !== '').length;
+
+    //   if (selectedCount === 0) {
+    //     toast.error('At least one employee must be selected');
+    //     console.log('Validation failed: No valid employees selected', modalShift.assigned_employees);
+    //     return;
+    //   }
+    // }
+
     // Create a deep copy of the modalShift state including selected employees
-    const cleanedShift = JSON.parse(JSON.stringify({
-      ...modalShift,
-      assigned_employees: modalShift.assigned_employees
-        ? modalShift.assigned_employees
-            .filter(emp => emp && emp.employee_id) // Ensure valid employee_id
-            .map(emp => ({...emp})) // Create new employee objects
-        : [],
-      // Include any selected employees from dropdowns that haven't been added to state yet
-      ...(Array.from(document.querySelectorAll('select[id^="employeeSelect-"]'))
-        .filter(select => select.value !== '')
-        .reduce((acc, select, i) => {
-          const emp = employees.find(e => e.employee_id === select.value);
-          if (emp && emp.employee_id) {
-            if (!acc.assigned_employees) acc.assigned_employees = [];
-            acc.assigned_employees[i] = {...emp};
-          }
-          return acc;
-        }, {}))
-    }));
+    const cleanedShift = JSON.parse(
+      JSON.stringify({
+        ...modalShift,
+        assigned_employees: modalShift.assigned_employees
+          ? modalShift.assigned_employees
+              .filter((emp) => emp && emp.employee_id) // Ensure valid employee_id
+              .map((emp) => ({ ...emp })) // Create new employee objects
+          : [],
+        // Include any selected employees from dropdowns that haven't been added to state yet
+        ...Array.from(
+          document.querySelectorAll('select[id^="employeeSelect-"]')
+        )
+          .filter((select) => select.value !== "")
+          .reduce((acc, select, i) => {
+            const emp = employees.find((e) => e.employee_id === select.value);
+            if (emp && emp.employee_id) {
+              if (!acc.assigned_employees) acc.assigned_employees = [];
+              acc.assigned_employees[i] = { ...emp };
+            }
+            return acc;
+          }, {}),
+      })
+    );
+    console.log("DEBUG assigned_employees:", cleanedShift.assigned_employees);
 
     try {
       // 1. Save to shift table
       const shiftResponse = await axios.post(hr3.backend.api.shift, {
-        type: cleanedShift.shift_name,
-        heads: cleanedShift.headcount || 1,
+        shift_name: cleanedShift.shift_name || cleanedShift.type, // Add shift_name for migration
+        type: cleanedShift.type,
+        heads: cleanedShift.heads || 1,
         time_start: cleanedShift.start_time,
         time_end: cleanedShift.end_time,
+        days: Array.isArray(cleanedShift.days)
+          ? cleanedShift.days.join(",")
+          : cleanedShift.days,
         date_from: cleanedShift.start_date,
-        date_to: cleanedShift.end_date
+        date_to: cleanedShift.end_date,
+        department: Array.isArray(cleanedShift.department)
+          ? cleanedShift.department.join(",")
+          : cleanedShift.department || "IT", // Always send department as string
       });
-      const shiftId = shiftResponse.data?.shift_id || shiftResponse.data?.id;
+      const shiftId = shiftResponse.data?.shift_id;
 
-      // 2. Save to employee_schedule table (create schedule, do NOT send employee_ids array)
-      const employeeScheduleResponse = await axios.post(hr3.backend.api.employee_schedule, {
-        type: cleanedShift.shift_name,
-        heads: cleanedShift.headcount || 1,
-        time_start: cleanedShift.start_time,
-        time_end: cleanedShift.end_time,
-        date_from: cleanedShift.start_date,
-        date_to: cleanedShift.end_date
-      });
-      const employeeScheduleId = employeeScheduleResponse.data?.employee_schedule_id || employeeScheduleResponse.data?.id;
+      // Use shiftId as employee_schedule_id
+      const employeeScheduleId = shiftId;
 
       // Validate employeeScheduleId before proceeding
       if (!employeeScheduleId) {
-        toast.error('Failed to create employee schedule. No valid ID returned.');
+        toast.error(
+          "Failed to create employee schedule. No valid ID returned."
+        );
         return;
       }
 
@@ -363,30 +449,32 @@ export default function Schedule() {
         if (!emp.employee_id) continue; // Skip if employee_id is missing
         await axios.post(hr3.backend.api.employee_schedule, {
           employee_id: emp.employee_id,
-          employee_schedule_id: employeeScheduleId
+          shift_id: shiftId, // send as shift_id instead of employee_schedule_id
         });
       }
-      // Do NOT save to schedule table immediately
-      // 3. Save to unpublish_schedule table with references
-      // await axios.post(hr3.backend.api.unpublish_schedule, {
-      //   shift_id: shiftId,
-      //   employee_schedule_id: employeeScheduleId
-      // });
+
+      // Remove any save to schedule table (do not save to hr3.backend.api.schedule)
+      // Remove any save to unpublish_schedule table
+      // Remove any duplicate schedule creation
 
       if (editingIndex !== null) {
-        setPublishingShifts(prev => {
+        setPublishingShifts((prev) => {
           const updated = [...prev];
           updated[editingIndex] = cleanedShift;
           return updated;
         });
       } else {
-        setPublishingShifts(prev => [...prev, cleanedShift]);
+        setPublishingShifts((prev) => [...prev, cleanedShift]);
       }
-      
+
       // Show success message
-      toast.success(editingIndex !== null ? 'Shift updated successfully' : 'Shift added successfully');
-      console.log('Shift saved successfully:', cleanedShift);
-      
+      toast.success(
+        editingIndex !== null
+          ? "Shift updated successfully"
+          : "Shift added successfully"
+      );
+      console.log("Shift saved successfully:", cleanedShift);
+
       // Reset modal state
       setOpenModal(false);
       setModalShift(null);
@@ -394,18 +482,18 @@ export default function Schedule() {
       // Refresh employees and schedules
       fetchEmployeesAndSchedules();
     } catch (error) {
-      console.error('Error saving shift:', error);
+      console.error("Error saving shift:", error);
       if (error.response) {
-        console.log('Full backend response:', error.response);
+        console.log("Full backend response:", error.response);
       }
-      let errorMessage = 'Failed to save shift. Please try again.';
+      let errorMessage = "Failed to save shift. Please try again.";
       if (error.response) {
         if (error.response.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.data?.errors) {
           errorMessage = Object.entries(error.response.data.errors)
             .map(([field, msg]) => `${field}: ${msg}`)
-            .join(' | ');
+            .join(" | ");
         } else {
           errorMessage = JSON.stringify(error.response.data);
         }
@@ -449,51 +537,55 @@ export default function Schedule() {
   }, [publishedShifts]);
 
   // Function to publish an unpublished shift: auto transfer to schedules DB
-const publishUnpublishedShift = async (schedule_id) => {
-  try {
-    // Aggregate all shifts with the same schedule_id
-    const relatedShifts = unpublishedShifts.filter(s => s.schedule_id === schedule_id);
-    if (relatedShifts.length === 0) {
-      toast.error('Shift not found');
-      return;
+  const publishUnpublishedShift = async (shift_id) => {
+    try {
+      // Aggregate all shifts with the same shift_id
+      const relatedShifts = savedShifts.filter((s) => s.shift_id === shift_id);
+      if (relatedShifts.length === 0) {
+        toast.error("Shift not found");
+        return;
+      }
+      // Build arrays for employee names and departments
+      const employee_names = relatedShifts.map((s) => s.employee_name);
+      // Use the first shift for shared properties
+      const shift = relatedShifts[0];
+      // Prepare payload for schedules DB
+      const payload = {
+        shift_name: shift.shift_name || shift.type, // Add shift_name for migration
+        type: shift.type,
+        department: shift.department || "IT", // Add department for migration
+        heads: shift.heads || 1,
+        date_from: shift.date_from,
+        date_to: shift.date_to,
+        time_start: shift.time_start.slice(0, 5), // Ensure HH:mm format
+        time_end: shift.time_end.slice(0, 5), // Ensure HH:mm format-
+        days: shift.days.join(","), // Convert array to comma-separated string
+      };
+      // Post to schedules DB
+      await axios.post(hr3.backend.api.schedule, payload);
+      toast.success("Shift published successfully");
+      // Remove from savedShifts
+      setUnpublishedShifts((prev) =>
+        prev.filter((s) => s.shift_id !== shift_id)
+      );
+      // Refresh employees and schedules
+      fetchEmployeesAndSchedules();
+    } catch (error) {
+      console.error("Error publishing shift:", error);
+      toast.error("Failed to publish shift. Please try again.");
     }
-    // Build arrays for employee names and departments
-    const employee_names = relatedShifts.map(s => s.employee_name);
-    // Use the first shift for shared properties
-    const shift = relatedShifts[0];
-    // Prepare payload for schedules DB
-    const payload = {
-      type: shift.type,
-      heads: shift.headcount || 1,
-      employee_ids: employee_names.map(name => {
-        const emp = employees.find(e => e.name === name);
-        return emp && emp.employee_id ? { employee_id: emp.employee_id, name: emp.name } : { employee_id: null, name };
-      })
-      // Filter out any employees with missing employee_id
-      .filter(emp => emp.employee_id !== null),
-      time_start: shift.time_start.slice(0,5), // Ensure HH:mm format
-      time_end: shift.time_end.slice(0,5),     // Ensure HH:mm format
-      date_from: shift.date_from,
-      date_to: shift.date_to
-    };
-    // Post to schedules DB
-    await axios.post(hr3.backend.api.schedule, payload);
-    toast.success('Shift published successfully');
-    // Remove from unpublishedShifts
-    setUnpublishedShifts(prev => prev.filter(s => s.schedule_id !== schedule_id));
-    // Refresh employees and schedules
-    fetchEmployeesAndSchedules();
-  } catch (error) {
-    console.error('Error publishing shift:', error);
-    toast.error('Failed to publish shift. Please try again.');
-  }
-};
+  };
   return (
     <div className="p-6 space-y-6">
       {/* AI Shift Analysis */}
       <div className="p-4 border rounded bg-white shadow">
         <h2 className="text-lg font-bold">AI Shift Analysis</h2>
-        <label htmlFor="aiTextInput" className="block text-sm font-medium text-gray-700 mb-1">Shift Description</label>
+        <label
+          htmlFor="aiTextInput"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Shift Description
+        </label>
         <Textarea
           id="aiTextInput"
           value={aiText}
@@ -508,18 +600,24 @@ const publishUnpublishedShift = async (schedule_id) => {
           <div className="mt-4 space-y-3">
             {aiResult.recommendations.map((r, i) => (
               <div key={i} className="border p-3 rounded bg-gray-50">
-                <p><strong>{r.shift_name}</strong></p>
-                <p>Time: {r.start_time} – {r.end_time}</p>
-                <p>Dept: {r.department.join(", ")}</p>
-                <p>Headcount: {r.headcount}</p>
+                <p>
+                  <strong>{r.shift_name}</strong>
+                </p>
+                <p>
+                  Time: {r.start_time} – {r.end_time}
+                </p>
+                <p>Department: {r.department.join(", ")}</p>
+                <p>Headcount: {r.heads}</p>
                 <p>Days: {r.days.join(", ")}</p>
-                <p>Duration: {r.start_date} → {r.end_date}</p>
+                <p>
+                  Duration: {r.start_date} → {r.end_date}
+                </p>
                 <Button
                   size="sm"
                   className="mt-2"
                   onClick={() => handleOpenPublishModal(r)}
                 >
-                  Add to Publishing Schedule
+                  Save Shift
                 </Button>
               </div>
             ))}
@@ -527,179 +625,190 @@ const publishUnpublishedShift = async (schedule_id) => {
         )}
       </div>
 
-      {/* Shifts & Schedule Publishing */}
-      <div className="p-4 border rounded bg-white shadow">
-        <h2 className="text-lg font-bold">Shifts & Schedule Publishing</h2>
-        {unpublishedShifts.length === 0 ? (
-          <p className="text-gray-500">No unpublished shifts found.</p>
+      {/* Shifts & Schedule */}
+      <div className="p-4 border rounded bg-white shadow max-h-[37%] overflow-auto ">
+        <h2 className="text-lg font-bold">Saved Shifts</h2>
+        <br />
+        {savedShifts.length === 0 ? (
+          <p className="text-gray-500">No Saved shifts found.</p>
         ) : (
-          (() => {
-            // Group unpublishedShifts by schedule_id
-            const grouped = {};
-            unpublishedShifts.forEach(s => {
-              if (!grouped[s.schedule_id]) {
-                grouped[s.schedule_id] = {
-                  ...s,
-                  employee_names: [s.employee_name],
-                  employee_departments: [s.employee_department]
-                };
-              } else {
-                grouped[s.schedule_id].employee_names.push(s.employee_name);
-                grouped[s.schedule_id].employee_departments.push(s.employee_department);
-              }
-            });
-            return (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableCell>Shift</TableCell>
-                  <TableCell>Time</TableCell>
-                  <TableCell>Dept</TableCell>
-                  <TableCell>Employees</TableCell>
-                  <TableCell>Duration</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(() => {
-                  const grouped = {};
-                  unpublishedShifts.forEach(s => {
-                    if (!grouped[s.schedule_id]) {
-                      grouped[s.schedule_id] = {
-                        ...s,
-                        employee_names: [s.employee_name],
-                        employee_departments: [s.employee_department],
-                      };
-                    } else {
-                      grouped[s.schedule_id].employee_names.push(s.employee_name);
-                      grouped[s.schedule_id].employee_departments.push(s.employee_department);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+            {savedShifts.map((s, idx) => (
+              <div
+                key={idx}
+                className={`hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card${
+                  deletedShiftId === s.id ? " dissolve" : ""
+                }`}
+                style={{
+                  transition: "opacity 0.5s",
+                  opacity: deletedShiftId === s.id ? 0 : 1,
+                }}
+              >
+                <h3 className="font-bold text-lg mb-2 capitalize">
+                  {s.shift_name || s.type}
+                </h3>
+                <div className="space-y-1 text-sm">
+                  <div>
+                    <strong>Head Counts:</strong> {s.heads}
+                  </div>
+                  <div>
+                    <strong>Department:</strong> {s.department}
+                  </div>
+                  <div className="capitalize">
+                    <strong>Type:</strong> {s.type}
+                  </div>
+                  <div>
+                    <strong>Days:</strong>{" "}
+                    {Array.isArray(s.days) ? s.days.join(", ") : s.days}
+                  </div>
+                  <div>
+                    <strong>Time:</strong> {s.time_start} – {s.time_end}
+                  </div>
+                  <div>
+                    <strong>Date:</strong> {s.date_from} → {s.date_to}
+                  </div>
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleOpenPublishModal(
+                        {
+                          shift_name: s.shift_name || s.type,
+                          heads: s.heads,
+                          type: s.type,
+                          days: Array.isArray(s.days)
+                            ? s.days
+                            : typeof s.days === "string"
+                            ? s.days.split(",").map((d) => d.trim())
+                            : [],
+                          start_time: s.time_start,
+                          end_time: s.time_end,
+                          start_date: s.date_from,
+                          end_date: s.date_to,
+                          department: s.department,
+                          assigned_employees: [],
+                          schedule_id: s.schedule_id,
+                          id: s.id,
+                        },
+                        idx
+                      )
                     }
-                  });
-
-                  return Object.values(grouped).map((s, idx) => (
-                    <TableRow key={idx} className="hover:bg-gray-50 transition">
-                      <TableCell className="font-medium">{s.type}</TableCell>
-                      <TableCell>{s.time_start} – {s.time_end}</TableCell>
-                      <TableCell>{[...new Set(s.employee_departments)].join(", ")}</TableCell>
-                      <TableCell>{s.employee_names.join(", ")}</TableCell>
-                      <TableCell>{s.date_from} → {s.date_to}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="ml-2"
-                          onClick={() =>
-                            handleOpenPublishModal({
-                              shift_name: s.type,
-                              start_time: s.time_start,
-                              end_time: s.time_end,
-                              start_date: s.date_from,
-                              end_date: s.date_to,
-                              department: [...new Set(s.employee_departments)],
-                              assigned_employees: s.employee_names.map(name => {
-                                const emp = employees.find(e => e.name === name);
-                                return emp ? emp : { employee_id: null, name };
-                              }),
-                              schedule_id: s.schedule_id,
-                            })
-                          }
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            // Publish: auto transfer to schedules DB, no modal
-                            publishUnpublishedShift(s.schedule_id);
-                          }}
-                        >
-                          Publish
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ));
-                })()}
-              </TableBody>
-            </Table>
-            );
-          })()
+                  >
+                    Publish
+                  </Button>
+                  <Button
+                    className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete this shift?"
+                        )
+                      ) {
+                        setDeletedShiftId(s.id);
+                        setTimeout(() => {
+                          deleteSavedShift(s.id);
+                          setDeletedShiftId(null);
+                          fetchEmployeesAndSchedules();
+                        }, 150);
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-{/* Published Shifts as Calendar */}
-<div className="p-4 border rounded bg-white shadow">
-  <h2 className="text-lg font-bold">Published Shifts & Schedules</h2>
-  {publishedShifts.length === 0 ? (
-    <p className="text-gray-500">No active shifts.</p>
-  ) : (
-    <div className="overflow-x-auto">
-      <Table className="min-w-[900px]">
-        <TableHeader>
-          <TableRow>
-            <TableCell className="font-bold">Department</TableCell>
-            {DAYS.map((day) => (
-              <TableCell key={day} className="font-bold text-center">
-                {day}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {deptLexicon.map((dept) => (
-            <TableRow key={dept.label}>
-              <TableCell className="font-semibold">{dept.label}</TableCell>
-              {DAYS.map((day) => {
-                const shiftsForDay = publishedShifts.filter(
-                  (s) =>
-                    (Array.isArray(s.department) ? s.department : [s.department ?? ""]).includes(dept.label) &&
-                    (Array.isArray(s.days) ? s.days : [s.days ?? ""]).includes(day)
-                );
-                return (
-                  <TableCell key={day} className="align-top">
-                    {shiftsForDay.length === 0 ? (
-                      <span className="text-gray-400 text-sm">—</span>
-                    ) : (
-                      <div className="space-y-2">
-                        {shiftsForDay.map((shift, idx) => (
-                          <div
-                            key={idx}
-                            className="p-2 rounded bg-blue-50 border text-sm text-center"
-                          >
-                            <div className="flex justify-between">
-                              <p className="font-medium">{shift.shift_name}
-                              </p>
-                              <span
-                                className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${
-                                  shift.status === "Active"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-200 text-gray-700"
-                                }`}
-                              >
-                                {shift.status}
-                              </span>
+      {/* Published Shifts as Calendar */}
+      <div className="p-4 border rounded bg-white shadow">
+        <h2 className="text-lg font-bold">Published Shifts & Schedules</h2>
+        {publishedShifts.length === 0 ? (
+          <p className="text-gray-500">No active shifts.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table className="min-w-[900px]">
+              <TableHeader>
+                <TableRow>
+                  <TableCell className="font-bold">Department</TableCell>
+                  {DAYS.map((day) => (
+                    <TableCell key={day} className="font-bold text-center">
+                      {day}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deptLexicon.map((dept) => (
+                  <TableRow key={dept.label}>
+                    <TableCell className="font-semibold">
+                      {dept.label}
+                    </TableCell>
+                    {DAYS.map((day) => {
+                      const shiftsForDay = publishedShifts.filter(
+                        (s) =>
+                          (Array.isArray(s.department)
+                            ? s.department
+                            : [s.department ?? ""]
+                          ).includes(dept.label) &&
+                          (Array.isArray(s.days)
+                            ? s.days
+                            : [s.days ?? ""]
+                          ).includes(day)
+                      );
+                      return (
+                        <TableCell key={day} className="align-top">
+                          {shiftsForDay.length === 0 ? (
+                            <span className="text-gray-400 text-sm">—</span>
+                          ) : (
+                            <div className="space-y-2">
+                              {shiftsForDay.map((shift, idx) => (
+                                <div
+                                  key={idx}
+                                  className="p-2 rounded bg-blue-50 border text-sm text-center"
+                                >
+                                  <div className="flex justify-between">
+                                    <p className="font-medium">
+                                      {shift.shift_name}
+                                    </p>
+                                    <span
+                                      className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${
+                                        shift.status === "Active"
+                                          ? "bg-green-100 text-green-700"
+                                          : "bg-gray-200 text-gray-700"
+                                      }`}
+                                    >
+                                      {shift.status}
+                                    </span>
+                                  </div>
+                                  <p>
+                                    {shift.start_time} - {shift.end_time}
+                                  </p>
+                                  <p className="text-xs text-gray-600">
+                                    {shift.assigned_employees
+                                      ?.map((e) => e.name)
+                                      .join(", ") || "No employees"}
+                                  </p>
+                                </div>
+                              ))}
                             </div>
-                            <p>
-                              {shift.start_time} - {shift.end_time}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {shift.assigned_employees?.map((e) => e.name).join(", ") || "No employees"}
-                            </p>
-                            
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )}
-</div>
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
 
       {/* History */}
       <div className="p-4 border rounded bg-white shadow">
@@ -722,7 +831,9 @@ const publishUnpublishedShift = async (schedule_id) => {
                 <TableRow key={idx}>
                   <TableCell>{s.shift_name}</TableCell>
                   <TableCell>{s.department.join(", ")}</TableCell>
-                  <TableCell>{s.start_date} → {s.end_date}</TableCell>
+                  <TableCell>
+                    {s.start_date} → {s.end_date}
+                  </TableCell>
                   <TableCell>{s.status}</TableCell>
                   <TableCell>
                     <Button
@@ -740,118 +851,70 @@ const publishUnpublishedShift = async (schedule_id) => {
         )}
       </div>
 
-       {/* Modal for Adding/Editing Employees */}
+      {/* Modal for Adding/Editing Employees */}
       <Dialog open={openModal} onOpenChange={setOpenModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingIndex !== null ? "Edit Publishing Shift" : "Add Shift to Publishing"}
-            </DialogTitle>
-          </DialogHeader>
-          {modalShift && (
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="shiftNameInput" className="block text-sm font-medium text-gray-700 mb-1">Shift Name</label>
-                <input
-                  id="shiftNameInput"
-                  type="text"
-                  className="w-full border p-1 rounded mb-2"
-                  value={modalShift.shift_name || ''}
-                  onChange={(e) => setModalShift(prev => ({...prev, shift_name: e.target.value}))}
-                />
-              </div>
-              <div>
-                <label htmlFor="startTimeInput" className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                <input
-                  id="startTimeInput"
-                  type="time"
-                  className="w-full border p-1 rounded mb-2"
-                  value={modalShift.start_time || ''}
-                  onChange={(e) => setModalShift(prev => ({...prev, start_time: e.target.value}))}
-                />
-              </div>
-              <div>
-                <label htmlFor="endTimeInput" className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                <input
-                  id="endTimeInput"
-                  type="time"
-                  className="w-full border p-1 rounded mb-2"
-                  value={modalShift.end_time || ''}
-                  onChange={(e) => setModalShift(prev => ({...prev, end_time: e.target.value}))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="days" className="block text-sm font-medium text-gray-700 mb-1">Days</label>
-                  <input type="text" className="w-full border p-1 rounded mb-2" value={modalShift.days || ''} readOnly />
-                </div>
-                <div>
-                  <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">Duration (From-To)</label>
-                  <input
-                    id="duration"
-                    type="text"
-                    className="w-full border p-1 rounded mb-2"
-                    value={(() => {
-                      if (modalShift.start_date && modalShift.end_date) {
-                        return `${modalShift.start_date} - ${modalShift.end_date}`;
-                      }
-                      return '';
-                    })()}
-                    readOnly
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assign Employees (max: {modalShift.headcount})</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {employees.filter(emp =>
-                    Array.isArray(modalShift.department)
-                      ? modalShift.department.includes(emp.department)
-                      : emp.department === modalShift.department
-                  ).map(emp => {
-                    // Only check if employee is in assigned_employees by employee_id
-                    const checked = modalShift.assigned_employees?.some(e => e.employee_id === emp.employee_id);
-                    const checkedCount = modalShift.assigned_employees?.length || 0;
-                    const disabled = !checked && checkedCount >= (modalShift.headcount || 1);
-                    return (
-                      <label key={emp.employee_id} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={disabled}
-                          onChange={e => {
-                            setModalShift(ms => {
-                              let updated;
-                              if (e.target.checked) {
-                                // Add employee by employee_id
-                                updated = [...(ms.assigned_employees || []), { ...emp, employee_id: emp.employee_id }];
-                              } else {
-                                // Remove employee by employee_id
-                                updated = (ms.assigned_employees || []).filter(e => e.employee_id !== emp.employee_id);
-                              }
-                              return { ...ms, assigned_employees: updated };
-                            });
-                          }}
-                        />
-                        <span>{emp.name} ({emp.department})</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={savePublishing}>
-              {editingIndex !== null ? "Save Changes" : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        {editingIndex !== null ? (
+          <EditShiftModal
+            open={openModal}
+            setOpen={setOpenModal}
+            modalShift={modalShift}
+            setModalShift={setModalShift}
+            employees={employees}
+            getAvailableEmployees={getAvailableEmployees(Array.isArray(modalShift.department) ? modalShift.department : [modalShift.department])}
+            onSave={savePublishing}
+          />
+        ) : (
+          <AddShiftModal
+            open={openModal}
+            setOpen={setOpenModal}
+            modalShift={modalShift}
+            setModalShift={setModalShift}
+            onSave={savePublishing}
+          />
+        )}
       </Dialog>
+
       <div className="w-full justify-center flex">
-        <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
+        <p
+          className="text-sm text-blue-500 py-5 cursor-pointer"
+          onClick={() => setOpenTermsDialog(true)}
+        >
+          Terms & Conditions
+        </p>
       </div>
-      <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+      <TermsDialog
+        className="w-full"
+        open={openTermsDialog}
+        onOpenChange={setOpenTermsDialog}
+      />
     </div>
   );
+}
+
+const deleteSavedShift = async (shift_id) => {
+  try {
+    await axios.delete(`${hr3.backend.api.shift}/${shift_id}`);
+    toast.success("Shift deleted successfully");
+    // Refresh the list
+    fetchEmployeesAndSchedules();
+  } catch (error) {
+    console.error("Error deleting shift:", error);
+    toast.error("Failed to delete shift. Please try again.");
+  }
+};
+
+function handleEditShiftCreate(shiftData) {
+  // Save assigned employees to schedule_employee
+  if (!shiftData || !shiftData.assigned_employees || shiftData.assigned_employees.length === 0) {
+    console.error('No employees assigned to this shift:', shiftData);
+    return;
+  }
+  // Example: Save each assigned employee to schedule_employee
+  shiftData.assigned_employees.forEach(emp => {
+    // Replace with your actual API call
+    // axios.post('/api/schedule_employee', { shift_id: shiftData.id, employee_id: emp.employee_id })
+    console.log('Saving to schedule_employee:', { shift_id: shiftData.id, employee_id: emp.employee_id });
+  });
+  // Optionally, show a success message or update state
+  // toast.success('Employees assigned to schedule successfully!');
 }

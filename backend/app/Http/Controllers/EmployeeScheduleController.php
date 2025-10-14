@@ -14,24 +14,29 @@ class EmployeeScheduleController extends Controller
         try {
             $validated = $request->validate([
                 'employee_id' => 'required|exists:employees,employee_id',
-                'employee_schedule_id' => 'required|exists:schedules,shift_id',
+                'shift_id' => 'required|exists:shift,shift_id',
             ]);
 
-            // Error checker: Ensure employee is not already assigned to this schedule
+            // Error checker: Ensure employee is not already assigned to this shift
             $alreadyAssigned = ScheduleEmployee::where('employee_id', $validated['employee_id'])
-                ->where('employee_schedule_id', $validated['employee_schedule_id'])
+                ->where('shift_id', $validated['shift_id'])
                 ->exists();
 
             if ($alreadyAssigned) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'This employee is already assigned to the selected schedule.'
+                    'error' => 'This employee is already assigned to the selected shift.'
                 ], 400);
             }
 
+            // Add a 0.5 second delay before creating the record
+            usleep(500000); // 500,000 microseconds = 0.5 seconds
+
             $assignment = ScheduleEmployee::create([
                 'employee_id' => $validated['employee_id'],
-                'employee_schedule_id' => $validated['employee_schedule_id'],
+                'shift_id' => $validated['shift_id'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             return response()->json(['success' => true, 'data' => $assignment], 201);

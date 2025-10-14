@@ -7,9 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Schedule extends Model
 {
     protected $table = 'schedules';
-    protected $primaryKey = 'shift_id';
+    protected $primaryKey = 'id';
     
     protected $fillable = [
+        'shift_id',
+        'schedule_employee_id',
+        'status',
+        'created_at',
+        'updated_at',
         'type',
         'heads',
         'time_start',

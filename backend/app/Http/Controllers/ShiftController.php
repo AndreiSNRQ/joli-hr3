@@ -29,8 +29,10 @@ class ShiftController extends Controller
                 return [
                     'id' => $shift->shift_id,
                     'employee_name' => $firstEmployee ? $firstEmployee->name : 'Unknown',
-                    'shift_type' => $shift->type,
-                    'headcount' => $shift->heads,
+                    'type' => $shift->type,
+                    'heads' => $shift->heads,
+                    'days' => $shift->days,
+                    'department' => $shift->department,
                     'start_time' => $shift->time_start,
                     'end_time' => $shift->time_end,
                     'date_start' => $shift->date_from,
@@ -53,8 +55,10 @@ class ShiftController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'shift_type' => 'string|max:100',
-            'headcount' => 'integer',
+            'type' => 'string|max:100',
+            'heads' => 'integer',
+            'days' => 'string|max:100', // Added days field
+            'department' => 'string|max:100', // Added department field
             'time_start' => 'required|date_format:H:i',
             'time_end' => 'required|date_format:H:i|after:time_start',
             'date_from' => 'required|date',
@@ -64,10 +68,10 @@ class ShiftController extends Controller
         ]);
 
         // Determine shift type based on start_time (if provided)
-        if (isset($validated['start_time'])) {
-            $startHour = intval(substr($validated['start_time'], 0, 2));
-            $startMinute = intval(substr($validated['start_time'], 3, 2));
-            $startTime12 = date("g:i A", strtotime($validated['start_time']));
+        if (isset($validated['time_start'])) {
+            $startHour = intval(substr($validated['time_start'], 0, 2));
+            $startMinute = intval(substr($validated['time_start'], 3, 2));
+            $startTime12 = date("g:i A", strtotime($validated['time_start']));
 
             if ($startHour >= 5 && $startHour < 10) {
                 $type = 'morning';
@@ -79,17 +83,22 @@ class ShiftController extends Controller
                 $type = 'custom';
             }
         } else {
-            $type = $validated['shifttype'] ?? 'custom';
+            $type = $validated['type'] ?? 'custom';
         }
 
         $shift = Shift::create([
-            'type' => $validated['type'] ?? 'custom',
+            'type' => $type,
             'heads' => $validated['heads'] ?? 1,
+            'days' => $validated['days'] ?? null, // Added days field
+            'department' => $request->input('department') ?? null, // Added department field
             'time_start' => $validated['time_start'] ?? null,
             'time_end' => $validated['time_end'] ?? null,
             'date_from' => $validated['date_from'] ?? null,
-            'date_to' => $validated['date_to'] ?? null
+            'date_to' => $validated['date_to'] ?? null,
+            'shift_name' => $request->input('shift_name') ?? $type
         ]);
+
+        // Do NOT assign employees here. Just save the shift.
 
         return response()->json($shift, 201);
     }
@@ -105,38 +114,52 @@ class ShiftController extends Controller
         return response()->json(['message' => 'Shift published successfully']);
     }
 
-    public function getUnpublishedSchedules()
+    public function shiftDataOnly()
     {
         try {
-            $records = DB::table('unpublish_schedule')
-                ->join('schedule_employee', 'unpublish_schedule.schedule_employee_id', '=', 'schedule_employee.id')
-                ->join('employees', 'schedule_employee.employee_id', '=', 'employees.id')
-                ->join('schedules', 'unpublish_schedule.shift_id', '=', 'schedules.shift_id')
-                ->select(
-                    'unpublish_schedule.id as unpublish_id',
-                    'schedules.shift_id',
-                    'schedules.type',
-                    'schedules.heads',
-                    'schedules.time_start',
-                    'schedules.time_end',
-                    'schedules.date_from',
-                    'schedules.date_to',
-                    'employees.id as employee_id',
-                    'employees.name as employee_name',
-                    'employees.department',
-                    'unpublish_schedule.status'
-                )
-                ->get();
+            $records = Shift::all();
+
+            if ($records->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No shifts found',
+                    'data' => []
+                ]);
+            }
+
+            $mapped = $records->map(function ($shift) {
+                return [
+                    'id' => $shift->shift_id,
+                    'shift_name' => $shift->shift_name,
+                    'type' => $shift->type,
+                    'heads' => $shift->heads,
+                    'department' => $shift->department,
+                    'days' => $shift->days,
+                    'time_start' => $shift->time_start,
+                    'time_end' => $shift->time_end,
+                    'date_from' => $shift->date_from,
+                    'date_to' => $shift->date_to,
+                ];
+            });
 
             return response()->json([
                 'success' => true,
-                'data' => $records
+                'data' => $mapped
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch unpublished schedules: ' . $e->getMessage()
+                'message' => 'Failed to fetch shift data: ' . $e->getMessage()
             ], 500);
         }
+    }
+    public function destroy($id)
+    {
+        $shift = Shift::find($id);
+        if (!$shift) {
+            return response()->json(['success' => false, 'message' => 'Shift not found'], 404);
+        }
+        $shift->delete();
+        return response()->json(['success' => true, 'message' => 'Shift deleted successfully']);
     }
 }
