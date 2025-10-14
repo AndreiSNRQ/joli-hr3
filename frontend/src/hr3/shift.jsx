@@ -480,8 +480,18 @@ const publishUnpublishedShift = async (schedule_id) => {
       date_to: shift.date_to
     };
     // Post to schedules DB
-    await axios.post(hr3.backend.api.schedule, payload);
+    const scheduleResponse = await axios.post(hr3.backend.api.schedule, payload);
     toast.success('Shift published successfully');
+    // Get the new shift_id from backend response
+    const newShiftId = scheduleResponse.data.shift_id;
+    // Assign employees to the shift via /employee-schedule endpoint
+    for (const empId of payload.employee_ids) {
+      console.log("Sending to backend:", { employee_id: empId, shift_id: newShiftId });
+      await axios.post(hr3.backend.api.employee_schedule, {
+        employee_id: empId,
+        shift_id: newShiftId
+      });
+    }
     // Remove from unpublishedShifts
     setUnpublishedShifts(prev => prev.filter(s => s.schedule_id !== schedule_id));
     // Refresh employees and schedules

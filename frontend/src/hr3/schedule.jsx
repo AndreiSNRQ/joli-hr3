@@ -537,42 +537,52 @@ export default function Schedule() {
   }, [publishedShifts]);
 
   // Function to publish an unpublished shift: auto transfer to schedules DB
-  const publishUnpublishedShift = async (shift_id) => {
+  const publishUnpublishedShift = async (schedule_id) => {
     try {
-      // Aggregate all shifts with the same shift_id
-      const relatedShifts = savedShifts.filter((s) => s.shift_id === shift_id);
+      // Aggregate all shifts with the same schedule_id
+      const relatedShifts = unpublishedShifts.filter(s => s.schedule_id === schedule_id);
       if (relatedShifts.length === 0) {
-        toast.error("Shift not found");
+        toast.error('Shift not found');
         return;
       }
       // Build arrays for employee names and departments
-      const employee_names = relatedShifts.map((s) => s.employee_name);
+      const employee_names = relatedShifts.map(s => s.employee_name);
       // Use the first shift for shared properties
       const shift = relatedShifts[0];
       // Prepare payload for schedules DB
       const payload = {
-        shift_name: shift.shift_name || shift.type, // Add shift_name for migration
         type: shift.type,
-        department: shift.department || "IT", // Add department for migration
-        heads: shift.heads || 1,
+        heads: shift.headcount || 1,
+        employee_ids: employee_names.map(name => {
+          const emp = employees.find(e => e.name === name);
+          return emp ? emp.employee_id : null;
+        }).filter(Boolean),
+        days: relatedShifts.map(s => s.day),
+        time_start: shift.time_start.slice(0,5), // Ensure HH:mm format
+        time_end: shift.time_end.slice(0,5),     // Ensure HH:mm format
         date_from: shift.date_from,
-        date_to: shift.date_to,
-        time_start: shift.time_start.slice(0, 5), // Ensure HH:mm format
-        time_end: shift.time_end.slice(0, 5), // Ensure HH:mm format-
-        days: shift.days.join(","), // Convert array to comma-separated string
+        date_to: shift.date_to
       };
       // Post to schedules DB
-      await axios.post(hr3.backend.api.schedule, payload);
-      toast.success("Shift published successfully");
-      // Remove from savedShifts
-      setUnpublishedShifts((prev) =>
-        prev.filter((s) => s.shift_id !== shift_id)
-      );
+      const scheduleResponse = await axios.post(hr3.backend.api.schedule, payload);
+      toast.success('Shift published successfully');
+      // Get the new shift_id from backend response
+      const newShiftId = scheduleResponse.data.shift_id;
+      // Assign employees to the shift via /employee-schedule endpoint
+      for (const empId of payload.employee_ids) {
+        console.log("Sending to backend:", { employee_id: empId, shift_id: newShiftId });
+        await axios.post(hr3.backend.api.employee_schedule, {
+          employee_id: empId,
+          shift_id: newShiftId
+        });
+      }
+      // Remove from unpublishedShifts
+      setUnpublishedShifts(prev => prev.filter(s => s.schedule_id !== schedule_id));
       // Refresh employees and schedules
       fetchEmployeesAndSchedules();
     } catch (error) {
-      console.error("Error publishing shift:", error);
-      toast.error("Failed to publish shift. Please try again.");
+      console.error('Error publishing shift:', error);
+      toast.error('Failed to publish shift. Please try again.');
     }
   };
   return (
@@ -861,7 +871,7 @@ export default function Schedule() {
             setModalShift={setModalShift}
             employees={employees}
             getAvailableEmployees={getAvailableEmployees(Array.isArray(modalShift.department) ? modalShift.department : [modalShift.department])}
-            onSave={savePublishing}
+            onCreate={handleEditShiftCreate}
           />
         ) : (
           <AddShiftModal

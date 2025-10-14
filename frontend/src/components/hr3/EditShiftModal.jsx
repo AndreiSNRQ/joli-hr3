@@ -9,7 +9,7 @@ export default function EditShiftModal({
   setModalShift,
   employees,
   getAvailableEmployees,
-  onSave,
+  onCreate,
 }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -160,7 +160,7 @@ export default function EditShiftModal({
         )}
 
         <DialogFooter>
-          <Button onClick={onSave}>Create</Button>
+          <Button onClick={() => onCreate(modalShift)}>Create</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
