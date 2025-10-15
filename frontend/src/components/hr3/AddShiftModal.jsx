@@ -7,7 +7,7 @@ export default function AddShiftModal({ open, setOpen, modalShift, setModalShift
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Shift</DialogTitle>
+          <DialogTitle>Create New Shift</DialogTitle>
         </DialogHeader>
 
         {modalShift && (

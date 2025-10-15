@@ -15,14 +15,24 @@ class EmployeeScheduleController extends Controller
         Log::info('EmployeeScheduleController@store called', ['request' => $request->all()]);
         try {
             $validated = $request->validate([
-                'employee_id' => 'required|exists:employees,employee_id',
+                'employee_ids' => 'required|array|min:1',
+                'employee_ids.*' => 'exists:employees,employee_id',
                 'shift_id' => 'required|exists:shift,shift_id',
+                'shift_name' => 'required|string',
+                'type' => 'required|in:night,morning,afternoon,custom',
+                'heads' => 'nullable|integer',
+                'days' => 'nullable|array',
+                'time_start' => 'required|date_format:H:i',
+                'time_end' => 'required|date_format:H:i',
+                'date_from' => 'required|date',
+                'date_to' => 'required|date',
+                'department' => 'nullable|string',
             ]);
             Log::info('Validation passed', ['validated' => $validated]);
 
-            // Error checker: Ensure employee is not already assigned to this shift
-            $alreadyAssigned = ScheduleEmployee::where('employee_id', $validated['employee_id'])
-                ->where('shift_id', $validated['shift_id'])
+            // Error checker: Ensure none of the employees are already assigned to this shift
+            $alreadyAssigned = ScheduleEmployee::where('shift_id', $validated['shift_id'])
+                ->whereJsonContains('employee_ids', $validated['employee_ids'])
                 ->exists();
             Log::info('Already assigned check', ['alreadyAssigned' => $alreadyAssigned]);
 
@@ -30,7 +40,7 @@ class EmployeeScheduleController extends Controller
                 Log::warning('Duplicate assignment attempt', $validated);
                 return response()->json([
                     'success' => false,
-                    'error' => 'This employee is already assigned to the selected shift.'
+                    'error' => 'One or more employees are already assigned to the selected shift.'
                 ], 400);
             }
 
@@ -38,8 +48,17 @@ class EmployeeScheduleController extends Controller
             usleep(500000); // 500,000 microseconds = 0.5 seconds
 
             $assignment = ScheduleEmployee::create([
-                'employee_id' => $validated['employee_id'],
+                'employee_ids' => $validated['employee_ids'],
                 'shift_id' => $validated['shift_id'],
+                'shift_name' => $validated['shift_name'],
+                'type' => $validated['type'],
+                'heads' => $validated['heads'] ?? null,
+                'days' => $validated['days'] ?? null,
+                'time_start' => $validated['time_start'],
+                'time_end' => $validated['time_end'],
+                'date_from' => $validated['date_from'],
+                'date_to' => $validated['date_to'],
+                'department' => $validated['department'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -61,5 +80,44 @@ class EmployeeScheduleController extends Controller
             ]);
             return response()->json(['success' => false, 'error' => $e->getMessage(), 'request' => $request->all()], 500);
         }
+    }
+    public function index()
+    {
+        // Fetch all unpublished employee schedules
+        $schedules = \App\Models\ScheduleEmployee::with('shift')->get();
+        $schedules->each(function ($schedule) {
+            $schedule->employees = $schedule->employees; // This will use the accessor
+        });
+        return response()->json($schedules);
+    }
+    /**
+     * Get assigned employees for a specific shift.
+     */
+    public function getAssignedEmployees($shift_id)
+    {
+        $assigned = ScheduleEmployee::where('shift_id', $shift_id)->get();
+        $employees = [];
+        foreach ($assigned as $assignment) {
+            $ids = $assignment->employee_ids;
+            if (is_array($ids)) {
+                $employees = array_merge($employees, $ids);
+            }
+        }
+        // Remove duplicates
+        $employees = array_unique($employees);
+        // Fetch employee details
+        $employeeDetails = \App\Models\Employee::whereIn('employee_id', $employees)->get();
+        return response()->json([
+            'success' => true,
+            'assigned_employees' => $employeeDetails
+        ]);
+    }
+    public function show($id)
+    {
+        $schedule = ScheduleEmployee::find($id);
+        if (!$schedule) {
+            return response()->json(['message' => 'Schedule not found'], 404);
+        }
+        return response()->json($schedule);
     }
 }

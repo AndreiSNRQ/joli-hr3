@@ -25,8 +25,4 @@ class Shift extends Model
     {
         return $this->hasMany(Schedule::class, 'shift_id');
     }
-    public function unpublishSchedules()
-    {
-        return $this->hasMany(UnpublishSchedule::class, 'shift_id');
-    }
 }

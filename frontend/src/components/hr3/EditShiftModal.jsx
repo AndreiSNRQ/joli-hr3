@@ -115,8 +115,9 @@ export default function EditShiftModal({
               <div className="border rounded p-2 grid grid-cols-2 max-h-40 overflow-y-auto">
                 {(Array.isArray(modalShift.department)
                   ? employees.filter(emp => modalShift.department.includes(emp.department))
-                  : employees
-                ).map((emp) => {
+                  : employees.filter(emp => emp.department === modalShift.department)
+                )
+                .map((emp) => {
                   const assigned = modalShift.assigned_employees || [];
                   const isChecked = assigned.some((e) => e.employee_id === emp.employee_id);
                   const maxReached = assigned.length >= (modalShift.heads || 1);
@@ -152,7 +153,7 @@ export default function EditShiftModal({
                         {emp.name} ({emp.department})
                       </span>
                     </div>
-                );
+                  );
                 })}
               </div>
             </div>
@@ -160,8 +161,25 @@ export default function EditShiftModal({
         )}
 
         <DialogFooter>
-          <Button onClick={() => onCreate(modalShift)}>Create</Button>
-        </DialogFooter>
+  <Button onClick={() => onCreate({
+    ...modalShift,
+    assigned_employees: (modalShift.assigned_employees || []).map(emp => ({
+      employee_id: emp.employee_id,
+      name: emp.name,
+      department: emp.department
+    })),
+    shift_name: modalShift.shift_name,
+    type: modalShift.type || modalShift.shift_name,
+    heads: modalShift.heads || 1,
+    days: modalShift.days,
+    time_start: modalShift.start_time,
+    time_end: modalShift.end_time,
+    date_from: modalShift.start_date,
+    date_to: modalShift.end_date,
+    department: modalShift.department,
+  })}>Save Changes</Button>
+</DialogFooter>
+
       </DialogContent>
     </Dialog>
   );

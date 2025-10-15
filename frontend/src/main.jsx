@@ -15,7 +15,7 @@ import ApprovedTimesheet from './hr3/approvedtimesheet'
 import TimesheetRequest from './hr3/timesheetrequest'
 import Timesheet from './hr3/timesheet'
 import Schedule from './hr3/schedule'
-import Shift from './hr3/shift'
+// import Shift from './hr3/shift'
 import ScheduleSwap from './hr3/scheduleswap';
 import Leave from './hr3/leave'
 import LeavePolicy from './hr3/leavepolicy'
@@ -35,7 +35,7 @@ createRoot(document.getElementById('root')).render(
             <Route path='timesheetrequest' element={<TimesheetRequest/>}/>
             <Route path='approvedtimesheet' element={<ApprovedTimesheet/>}/>
             <Route path='schedule' element={<Schedule/>}/>
-            <Route path='shift' element={<Shift/>}/>
+            {/* <Route path='shift' element={<Shift/>}/> */}
             <Route path='scheduleswap' element={<ScheduleSwap/>}/>
             <Route path='leave' element={<Leave/>}/>
             <Route path='leavepolicy' element={<LeavePolicy/>}/>

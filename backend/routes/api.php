@@ -52,9 +52,14 @@ Route::post('/timesheet', [TimesheetController::class, 'store']);
 
 // SHIFT AND SCHEDULE
 Route::get('/schedule', [ScheduleController::class, 'index']);
-Route::post('/employee-schedule', [EmployeeScheduleController::class, 'store']);
+Route::post('/employee_schedule', [EmployeeScheduleController::class, 'store']);
+Route::get('/employee_schedule', [EmployeeScheduleController::class, 'index']);
+Route::get('/employee-schedule', [EmployeeScheduleController::class, 'index']);
+Route::get('/employee-schedule/assigned/{shift_id}', [EmployeeScheduleController::class, 'getAssignedEmployees']);
+Route::post('/schedule', [ScheduleController::class, 'store']);
 Route::get('/shift', [ShiftController::class, 'index']);
 Route::post('/shift', [ShiftController::class, 'store']);
+Route::put('/shift/{id}', [ShiftController::class, 'update']);
 // shift data only
 Route::get('/shift_data_only', [ShiftController::class, 'shiftDataOnly']);
 Route::delete('/shift/{id}', [ShiftController::class, 'destroy']);
@@ -69,3 +74,5 @@ Route::post('/leave', [LeaveController::class, 'store']);
 // CLAIMS AND REIMBURSEMENTS
 Route::get('/claims', [ClaimsController::class, 'index']);
 Route::post('/claims', [ClaimsController::class, 'store']);
+// Get assigned employees for a specific shift
+Route::get('/employee_schedule/assigned/{shift_id}', [EmployeeScheduleController::class, 'getAssignedEmployees']);

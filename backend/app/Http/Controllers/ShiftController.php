@@ -162,4 +162,33 @@ class ShiftController extends Controller
         $shift->delete();
         return response()->json(['success' => true, 'message' => 'Shift deleted successfully']);
     }
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'type' => 'string|max:100',
+            'heads' => 'integer',
+            'days' => 'string|max:100',
+            'department' => 'string|max:100',
+            'time_start' => 'required|date_format:H:i',
+            'time_end' => 'required|date_format:H:i|after:time_start',
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from',
+            'shift_name' => 'string|max:100',
+        ]);
+
+        $shift = Shift::find($id);
+        if (!$shift) {
+            \Log::error('Shift not found for update', ['id' => $id, 'request' => $request->all()]);
+            return response()->json(['success' => false, 'message' => 'Shift not found'], 404);
+        }
+
+        try {
+            $shift->update($validated);
+            \Log::info('Shift updated successfully', ['id' => $id, 'data' => $validated]);
+            return response()->json(['success' => true, 'message' => 'Shift updated successfully', 'shift' => $shift]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating shift', ['id' => $id, 'error' => $e->getMessage(), 'request' => $request->all()]);
+            return response()->json(['success' => false, 'message' => 'Error updating shift', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

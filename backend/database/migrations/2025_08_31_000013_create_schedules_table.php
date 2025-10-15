@@ -10,13 +10,20 @@ class CreateSchedulesTable extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('shift_id');
-            $table->unsignedBigInteger('schedule_employee_id');
-            $table->enum('status', ['active', 'not active'])->default('not active');
+            $table->json('employee_ids'); // Store multiple employee IDs as JSON array
+            $table->unsignedBigInteger('schedule_id')->nullable();
+            $table->string('shift_name')->nullable();
+            $table->enum('type', ['night', 'morning', 'afternoon', 'custom']);
+            $table->integer('heads')->nullable();
+            $table->string('days')->nullable();
+            $table->time('time_start');
+            $table->time('time_end');
+            $table->date('date_from');
+            $table->date('date_to');
+            $table->string('department')->nullable();
+            $table->enum('status', ['active', 'not active'])->default('active');
             $table->timestamps();
-
-            $table->foreign('shift_id')->references('shift_id')->on('shift')->onDelete('cascade');
-            $table->foreign('schedule_employee_id')->references('shift_id')->on('schedule_employee')->onDelete('cascade');
+            $table->foreign('schedule_id')->references('id')->on('schedule_employee')->onDelete('set null');
         });
     }
 // 

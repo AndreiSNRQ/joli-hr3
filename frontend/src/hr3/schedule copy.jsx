@@ -203,29 +203,24 @@ export default function Schedule() {
 
   const [employeeSchedules, setEmployeeSchedules] = useState([]);
   useEffect(() => {
-    const fetchEmployeeSchedules = () => {
-      axios.get(hr3.backend.api.employee_schedule.replace('_', '-'))
-        .then(res => {
-          // Group by shift_id
-          const grouped = {};
-          res.data.forEach(item => {
-            if (!grouped[item.id]) {
-              grouped[item.id] = {
-                ...item,
-                assigned_employees: [item.assigned_employees ? item.assigned_employees : (item.employee_id)],
-              };
-            } else {
-              // Merge employees
-              grouped[item.id].assigned_employees.push(item.assigned_employees ? item.assigned_employees : (item.employee_id));
-            }
-          });
-          setEmployeeSchedules(Object.values(grouped));
-        })
-        .catch(err => console.error(err));
-    };
-    fetchEmployeeSchedules();
-    const interval = setInterval(fetchEmployeeSchedules, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
+    axios.get(hr3.backend.api.employee_schedule.replace('_', '-'))
+      .then(res => {
+        // Group by shift_id
+        const grouped = {};
+        res.data.forEach(item => {
+          if (!grouped[item.shift_id]) {
+            grouped[item.shift_id] = {
+              ...item,
+              assigned_employees: [item.assigned_employees ? item.assigned_employees : (item.employee_id)],
+            };
+          } else {
+            // Merge employees
+            grouped[item.shift_id].assigned_employees.push(item.assigned_employees ? item.assigned_employees : (item.employee_id));
+          }
+        });
+        setEmployeeSchedules(Object.values(grouped));
+      })
+      .catch(err => console.error(err));
   }, []);
   // Fetch employees and their schedules from backend
   const fetchEmployeesAndSchedules = async () => {
@@ -332,47 +327,31 @@ export default function Schedule() {
   const [openModal, setOpenModal] = React.useState(false);
   const [deletedShiftId, setDeletedShiftId] = useState(null);
 
-  // Helper to open PublishScheduleModal correctly
-  const openPublishScheduleModal = (shift) => {
-    setEditingIndex(null);
-    setOpenModal(false);
-    setOpenPublishModal(true);
-    setModalShift(shift); // <-- Ensure modalShift is set for PublishScheduleModal
-  };
-
   const runAnalysis = () => {
     if (!aiText.trim()) return;
     const res = analyzeShift(aiText);
     setAiResult(res);
   };
 
-  const handleOpenPublishModal = async (shift, index = null) => {
-    // Fetch assigned employees from backend
-    let assignedEmployees = [];
-    try {
-      const res = await axios.get(`${hr3.backend.api.employee_schedule.replace('_', '-')}/assigned/${shift.id || shift.shift_id}`);
-      if (res.data && Array.isArray(res.data.assigned_employees)) {
-        assignedEmployees = res.data.assigned_employees;
-      }
-    } catch (err) {
-      console.error('Failed to fetch assigned employees:', err);
-    }
+  const handleOpenPublishModal = (shift, index = null) => {
     setModalShift({
       ...shift,
-      assigned_employees: assignedEmployees,
+      assigned_employees: Array.isArray(shift.assigned_employees)
+        ? [...shift.assigned_employees.filter((e) => e && e.employee_id)]
+        : [],
       heads: shift.heads || 1,
       department: Array.isArray(shift.department)
         ? shift.department
-        : (shift.department || '').split(',').map(dep => dep.trim()).filter(Boolean),
+        : (shift.department || "").split(",").map(dep => dep.trim()).filter(Boolean),
       days: Array.isArray(shift.days)
         ? shift.days
-        : (shift.days || '').split(',').map(day => day.trim()).filter(Boolean),
-      start_date: shift.start_date || new Date().toISOString().split('T')[0],
+        : (shift.days || "").split(",").map(day => day.trim()).filter(Boolean),
+      start_date: shift.start_date || new Date().toISOString().split("T")[0],
       end_date:
         shift.end_date ||
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
           .toISOString()
-          .split('T')[0],
+          .split("T")[0],
     });
     setEditingIndex(index);
     setOpenModal(true);
@@ -491,15 +470,12 @@ export default function Schedule() {
       const employee_ids = cleanedShift.assigned_employees
         ? cleanedShift.assigned_employees.filter(emp => emp && emp.employee_id).map(emp => emp.employee_id)
         : [];
-      // Only trigger employee assignment if editing an existing shift (not when adding new)
-      if (editingIndex !== null) {
-        await axios.post(hr3.backend.api.employee_schedule, {
-          employee_ids,
-          shift_id: shiftId, // send as shift_id instead of employee_schedule_id
-          time_start: cleanedShift.start_time ? cleanedShift.start_time.slice(0,5) : undefined,
-          time_end: cleanedShift.end_time ? cleanedShift.end_time.slice(0,5) : undefined,
-        });
-      }
+      await axios.post(hr3.backend.api.employee_schedule, {
+        employee_ids,
+        shift_id: shiftId, // send as shift_id instead of employee_schedule_id
+        time_start: cleanedShift.start_time ? cleanedShift.start_time.slice(0,5) : undefined,
+        time_end: cleanedShift.end_time ? cleanedShift.end_time.slice(0,5) : undefined,
+      });
       // Remove any save to schedule table (do not save to hr3.backend.api.schedule)
       // Remove any save to unpublish_schedule table
       // Remove any duplicate schedule creation
@@ -521,16 +497,13 @@ export default function Schedule() {
           : "Shift added successfully"
       );
       console.log("Shift saved successfully:", cleanedShift);
-    
+
       // Reset modal state
       setOpenModal(false);
       setModalShift(null);
       setEditingIndex(null);
       // Refresh employees and schedules
       fetchEmployeesAndSchedules();
-      // Auto-refresh AI Shift Analysis after saving
-      setAiText("");
-      setAiResult(null);
     } catch (error) {
       console.error("Error saving shift:", error);
       if (error.response) {
@@ -638,14 +611,15 @@ export default function Schedule() {
     }
   };
   return (
-    <div className="px-5 space-y-4 -mt-7">
+    <div className="p-6 space-y-6">
       {/* AI Shift Analysis */}
-      <div>
-        <h2 className="text-2xl font-bold">AI Shift Analysis</h2>
-      </div>
       <div className="p-4 border rounded bg-white shadow">
-        <label htmlFor="aiTextInput" className="block text-sm font-medium text-gray-700 mb-1">
-          Create Shift
+        <h2 className="text-lg font-bold">AI Shift Analysis</h2>
+        <label
+          htmlFor="aiTextInput"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Shift Description
         </label>
         <Textarea
           id="aiTextInput"
@@ -687,7 +661,7 @@ export default function Schedule() {
       </div>
 
       {/* Shifts */}
-      <div className="px-4 py-2 border rounded bg-white shadow max-h-[30%] min-h-[20%] overflow-auto ">
+      <div className="p-4 border rounded bg-white shadow max-h-[35%] overflow-auto ">
         <h2 className="text-lg font-bold">Saved Shifts</h2>
         <br />
         {savedShifts.length === 0 ? (
@@ -749,7 +723,7 @@ export default function Schedule() {
                           start_date: s.date_from,
                           end_date: s.date_to,
                           department: s.department,
-                          assigned_employees: Array.isArray(s.employees) ? s.employees : [], // <-- pass actual employees
+                          assigned_employees: [],
                           schedule_id: s.schedule_id,
                           id: s.id,
                         },
@@ -788,7 +762,7 @@ export default function Schedule() {
       </div>
 
       {/* Employee Schedule */}
-      <div className="px-4 py-2 border rounded bg-white shadow max-h-[30.5%] min-h-[25%] overflow-auto ">
+      <div className="p-4 border rounded bg-white shadow max-h-[35%] overflow-auto ">
         <h2 className="text-lg font-bold">Employee Schedule</h2>
         <br />
         {/* Fetch employee schedules only for this section */}
@@ -798,40 +772,47 @@ export default function Schedule() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
             {employeeSchedules.map((s, idx) => (
-              <div class="flex flex-col justify-between min-h-[100%]">
-                <div key={idx} className={`hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card${deletedShiftId === s.id ? " dissolve" : ""}`} style={{transition: "opacity 0.5s", opacity: deletedShiftId === s.id ? 0 : 1, }}>
-                  <h3 className="font-bold text-lg mb-2 capitalize">
-                    {s.shift_name || s.type}
-                  </h3>
-                  <div className="space-y-1 text-sm">
-                    <div>
-                      <strong>Head Counts:</strong> {s.heads}
-                    </div>
-                    <div>
-                      <strong>Assigned Employees:</strong> {Array.isArray(s.employees) && s.employees.length > 0
-                        ? s.employees.map(emp => typeof emp === 'object' ? (emp.name || emp.employee_name || emp.employee_id) : emp).join(", ")
-                        : "None"}
-                    </div>
-                    <div>
-                      <strong>Department:</strong> {s.department}
-                    </div>
-                    <div className="capitalize">
-                      <strong>Type:</strong> {s.type}
-                    </div>
-                    <div>
-                      <strong>Days:</strong>{" "}
-                      {Array.isArray(s.days) ? s.days.join(", ") : s.days}
-                    </div>
-                    <div>
-                      <strong>Time:</strong> {s.time_start} – {s.time_end}
-                    </div>
+              <div
+                key={idx}
+                className={`hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card${deletedShiftId === s.id ? " dissolve" : ""}`}
+                style={{
+                  transition: "opacity 0.5s",
+                  opacity: deletedShiftId === s.id ? 0 : 1,
+                }}
+              >
+                <h3 className="font-bold text-lg mb-2 capitalize">
+                  {s.shift_name || s.type}
+                </h3>
+                <div className="space-y-1 text-sm">
+                  <div>
+                    <strong>Head Counts:</strong> {s.heads}
                   </div>
-                  {/* <div className="mt-2 flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        openPublishScheduleModal({
+                  <div>
+                    <strong>Assigned Employees:</strong> {Array.isArray(s.employees) && s.employees.length > 0
+                      ? s.employees.map(emp => typeof emp === 'object' ? (emp.name || emp.employee_name || emp.employee_id) : emp).join(", ")
+                      : "None"}
+                  </div>
+                  <div>
+                    <strong>Department:</strong> {s.department}
+                  </div>
+                  <div className="capitalize">
+                    <strong>Type:</strong> {s.type}
+                  </div>
+                  <div>
+                    <strong>Days:</strong>{" "}
+                    {Array.isArray(s.days) ? s.days.join(", ") : s.days}
+                  </div>
+                  <div>
+                    <strong>Time:</strong> {s.time_start} – {s.time_end}
+                  </div>
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleOpenPublishModal(
+                        {
                           shift_name: s.shift_name || s.type,
                           heads: s.heads,
                           type: s.type,
@@ -848,82 +829,34 @@ export default function Schedule() {
                           assigned_employees: [],
                           schedule_id: s.schedule_id,
                           id: s.id,
-                        })
+                        },
+                        idx
+                      )
+                    }
+                  >
+                    Publish
+                  </Button>
+                  <Button
+                    className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete this Schedule?"
+                        )
+                      ) {
+                        setDeletedShiftId(s.id);
+                        setTimeout(() => {
+                          deleteEmployeeSchedule(s.id);
+                          setDeletedShiftId(null);
+                          fetchEmployeesAndSchedules();
+                        }, 150);
                       }
-                    >
-                      View
-                    </Button>
-                    <Button
-                      className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this Schedule?"
-                          )
-                        ) {
-                          setDeletedShiftId(s.id);
-                          setTimeout(() => {
-                            deleteEmployeeSchedule(s.id);
-                            setDeletedShiftId(null);
-                            fetchEmployeesAndSchedules();
-                          }, 150);
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div> */}
-                  <div className="mt-2 flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        openPublishScheduleModal({
-                          shift_name: s.shift_name || s.type,
-                          heads: s.heads,
-                          type: s.type,
-                          days: Array.isArray(s.days)
-                            ? s.days
-                            : typeof s.days === "string"
-                            ? s.days.split(",").map((d) => d.trim())
-                            : [],
-                          start_time: s.time_start,
-                          end_time: s.time_end,
-                          start_date: s.date_from,
-                          end_date: s.date_to,
-                          department: s.department,
-                          assigned_employees: [],
-                          schedule_id: s.schedule_id,
-                          id: s.id,
-                        })
-                      }
-                    >
-                      View
-                    </Button>
-                    <Button
-                      className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this Schedule?"
-                          )
-                        ) {
-                          setDeletedShiftId(s.id);
-                          setTimeout(() => {
-                            deleteEmployeeSchedule(s.id);
-                            setDeletedShiftId(null);
-                            fetchEmployeesAndSchedules();
-                          }, 150);
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
             ))}
@@ -1035,7 +968,7 @@ export default function Schedule() {
       </div> */}
 
       {/* Published Shifts as Calendar */}
-      <div className="px-4 py-2 border rounded bg-white shadow">
+      <div className="p-4 border rounded bg-white shadow">
         <h2 className="text-lg font-bold">Published Shifts & Schedules</h2>
         {publishedShifts.length === 0 ? (
           <p className="text-gray-500">No active shifts.</p>
@@ -1119,7 +1052,7 @@ export default function Schedule() {
       </div>
 
       {/* History */}
-      <div className="px-4 py-2 border rounded bg-white shadow">
+      <div className="p-4 border rounded bg-white shadow">
         <h2 className="text-lg font-bold">History (Ended Shifts)</h2>
         {history.length === 0 ? (
           <p className="text-gray-500">No ended shifts.</p>
@@ -1159,29 +1092,18 @@ export default function Schedule() {
         )}
       </div>
 
-      {/* Modal for Adding/Editing/Publishing Employees */}
-      <Dialog open={openModal || openPublishModal} onOpenChange={val => { setOpenModal(false); setOpenPublishModal(false); }}>
-        {openPublishModal ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-            <PublishScheduleModal
-              open={openPublishModal}
-              setOpen={setOpenPublishModal}
-              schedule={modalShift}
-              employees={employees}
-              getAvailableEmployees={getAvailableEmployees}
-              onPublish={handlePublishSchedule}
-            />
-          </div>
-        ) : editingIndex !== null ? (
+      {/* Modal for Adding/Editing Employees */}
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        {editingIndex !== null ? (
           <EditShiftModal
-            open={openModal}
-            setOpen={setOpenModal}
-            modalShift={modalShift}
-            setModalShift={setModalShift}
-            employees={employees}
-            getAvailableEmployees={getAvailableEmployees}
-            onCreate={handleCreateOrUpdateShift}
-          />
+  open={openModal}
+  setOpen={setOpenModal}
+  modalShift={modalShift}
+  setModalShift={setModalShift}
+  employees={employees}
+  getAvailableEmployees={getAvailableEmployees}
+  onCreate={handleCreateOrUpdateShift}
+/>
         ) : (
           <AddShiftModal
             open={openModal}
@@ -1233,20 +1155,20 @@ const deleteEmployeeSchedule = async (scheduleId) => {
   }
 };
 
-async function handlePublishSchedule(scheduleData) {
-  // Send publish request to backend
-  const response = await axios.post(hr3.backend.api.publish_schedule_detailed, {
-    schedule_id: scheduleData.id || scheduleData.shift_id,
-    ...scheduleData
-  });
-  if (response.status === 200 || response.status === 201) {
-    toast.success("Schedule published successfully!");
-    setOpenPublishModal(false);
-    setModalShift(null);
-    fetchEmployeesAndSchedules();
-  } else {
-    toast.error("Failed to publish schedule.");
+function handleEditShiftCreate(shiftData) {
+  // Save assigned employees to schedule_employee
+  if (!shiftData || !shiftData.assigned_employees || shiftData.assigned_employees.length === 0) {
+    console.error('No employees assigned to this shift:', shiftData);
+    return;
   }
+  // Example: Save each assigned employee to schedule_employee
+  shiftData.assigned_employees.forEach(emp => {
+    // Replace with your actual API call
+    // axios.post('/api/schedule_employee', { shift_id: shiftData.id, employee_id: emp.employee_id })
+    console.log('Saving to schedule_employee:', { shift_id: shiftData.id, employee_id: emp.employee_id });
+  });
+  // Optionally, show a success message or update state
+  // toast.success('Employees assigned to schedule successfully!');
 }
 const handleCreateOrUpdateShift = async (shiftData) => {
   try {

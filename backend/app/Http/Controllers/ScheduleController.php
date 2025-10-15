@@ -138,4 +138,36 @@ class ScheduleController extends Controller
     {
         // This method is now obsolete and has been removed.
     }
+
+    public function publishScheduleDetailed(Request $request)
+    {
+        // Validate input: expect schedule_employee ID
+        $validated = $request->validate([
+            'schedule_employee_id' => 'required|integer|exists:schedule_employee,id',
+        ]);
+
+        // Fetch the schedule_employee record
+        $scheduleEmployee = \App\Models\ScheduleEmployee::findOrFail($validated['schedule_employee_id']);
+
+        // Copy data to schedules table
+        $schedule = \App\Models\Schedule::create([
+            'shift_id' => $scheduleEmployee->shift_id,
+            'schedule_employee_id' => $scheduleEmployee->id,
+            'type' => $scheduleEmployee->type,
+            'heads' => $scheduleEmployee->heads,
+            'time_start' => $scheduleEmployee->time_start,
+            'time_end' => $scheduleEmployee->time_end,
+            'date_from' => $scheduleEmployee->date_from,
+            'date_to' => $scheduleEmployee->date_to,
+            'status' => 'published',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule published successfully.',
+            'data' => $schedule
+        ], 201);
+    }
 }
