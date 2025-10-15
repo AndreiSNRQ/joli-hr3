@@ -64,15 +64,11 @@ Route::put('/shift/{id}', [ShiftController::class, 'update']);
 Route::get('/shift_data_only', [ShiftController::class, 'shiftDataOnly']);
 Route::delete('/shift/{id}', [ShiftController::class, 'destroy']);
 Route::get('/publish-schedule', [ScheduleController::class, 'getPublishedSchedules']);
+Route::get('/publish-schedule/{id}', [ScheduleController::class, 'getPublishedSchedules']);
 Route::post('/publish-schedule-detailed', [ScheduleController::class, 'publishScheduleDetailed']);
-
-// LEAVE MANAGEMENT
-Route::get('/leave', [LeaveController::class, 'index']);
-Route::post('/leave', [LeaveController::class, 'store']);
-
-
-// CLAIMS AND REIMBURSEMENTS
-Route::get('/claims', [ClaimsController::class, 'index']);
-Route::post('/claims', [ClaimsController::class, 'store']);
-// Get assigned employees for a specific shift
-Route::get('/employee_schedule/assigned/{shift_id}', [EmployeeScheduleController::class, 'getAssignedEmployees']);
+// Update status of schedule_employee
+// Route::post('/employee_schedule/{id}/publish', [EmployeeScheduleController::class, 'updateStatus']);
+// Get a specific schedule_employee record
+Route::get('/employee_schedule/{id}', [EmployeeScheduleController::class, 'getScheduleEmployee']);
+Route::get('/employee-schedule/assigned/{shift_id}', [EmployeeScheduleController::class, 'getAssignedEmployees']);
+Route::post('/employee_schedule/{id}/publish', [EmployeeScheduleController::class, 'publish']);

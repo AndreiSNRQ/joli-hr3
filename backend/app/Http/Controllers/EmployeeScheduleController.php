@@ -27,6 +27,7 @@ class EmployeeScheduleController extends Controller
                 'date_from' => 'required|date',
                 'date_to' => 'required|date',
                 'department' => 'nullable|string',
+                'status' => 'nullable|in:publish,unpublish' // <-- add status validation
             ]);
             Log::info('Validation passed', ['validated' => $validated]);
 
@@ -59,6 +60,7 @@ class EmployeeScheduleController extends Controller
                 'date_from' => $validated['date_from'],
                 'date_to' => $validated['date_to'],
                 'department' => $validated['department'] ?? null,
+                'status' => $validated['status'] ?? 'unpublish', // <-- set status
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -119,5 +121,42 @@ class EmployeeScheduleController extends Controller
             return response()->json(['message' => 'Schedule not found'], 404);
         }
         return response()->json($schedule);
+    }
+    /**
+     * Get a specific schedule_employee record by ID
+     */
+    public function getScheduleEmployee($id)
+    {
+        $schedule = \App\Models\ScheduleEmployee::find($id);
+        if (!$schedule) {
+            return response()->json(['success' => false, 'error' => 'ScheduleEmployee not found'], 404);
+        }
+        return response()->json(['success' => true, 'data' => $schedule]);
+    }
+    /**
+     * Update the status of a schedule_employee record
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:publish,unpublish'
+        ]);
+        $scheduleEmployee = ScheduleEmployee::find($id);
+        if (!$scheduleEmployee) {
+            return response()->json(['success' => false, 'error' => 'ScheduleEmployee not found'], 404);
+        }
+        $scheduleEmployee->status = $validated['status'];
+        $scheduleEmployee->save();
+        return response()->json(['success' => true, 'data' => $scheduleEmployee]);
+    }
+    public function publish($id)
+    {
+        $scheduleEmployee = ScheduleEmployee::find($id);
+        if (!$scheduleEmployee) {
+            return response()->json(['success' => false, 'error' => 'ScheduleEmployee not found'], 404);
+        }
+        $scheduleEmployee->status = 'publish';
+        $scheduleEmployee->save();
+        return response()->json(['success' => true, 'data' => $scheduleEmployee]);
     }
 }

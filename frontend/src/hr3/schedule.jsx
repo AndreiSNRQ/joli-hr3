@@ -688,27 +688,18 @@ export default function Schedule() {
 
       {/* Shifts */}
       <div className="px-4 py-2 border rounded bg-white shadow max-h-[30%] min-h-[20%] overflow-auto ">
-        <h2 className="text-lg font-bold">Saved Shifts</h2>
+        <h2 className="text-lg font-bold">Shifts</h2>
         <br />
         {savedShifts.length === 0 ? (
           <p className="text-gray-500">No Saved shifts found.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
             {savedShifts.map((s, idx) => (
-              <div
-                key={idx}
-                className={`hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card${
-                  deletedShiftId === s.id ? " dissolve" : ""
-                }`}
-                style={{
-                  transition: "opacity 0.5s",
-                  opacity: deletedShiftId === s.id ? 0 : 1,
-                }}
-              >
-                <h3 className="font-bold text-lg mb-2 capitalize">
-                  {s.shift_name || s.type}
-                </h3>
+              <div key={idx} className={`hover:border-2 flex flex-col justify-between min-h-[100%] hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card${ deletedShiftId === s.id ? " dissolve" : "" }`} style={{ transition: "opacity 0.5s", opacity: deletedShiftId === s.id ? 0 : 1,}}>
                 <div className="space-y-1 text-sm">
+                  <h3 className="font-bold text-lg mb-2 capitalize">
+                    {s.shift_name || s.type}
+                  </h3>
                   <div>
                     <strong>Head Counts:</strong> {s.heads}
                   </div>
@@ -729,6 +720,7 @@ export default function Schedule() {
                     <strong>Date:</strong> {s.date_from} → {s.date_to}
                   </div>
                 </div>
+                {/* buttons */}
                 <div className="mt-2 flex gap-2">
                   <Button
                     size="sm"
@@ -781,37 +773,49 @@ export default function Schedule() {
                     Delete
                   </Button>
                 </div>
-              </div>
+            </div>
             ))}
           </div>
         )}
       </div>
 
       {/* Employee Schedule */}
-      <div className="px-4 py-2 border rounded bg-white shadow max-h-[30.5%] min-h-[25%] overflow-auto ">
-        <h2 className="text-lg font-bold">Employee Schedule</h2>
+      <div className="px-4 py-2 border rounded bg-white shadow max-h-[30.5%] min-h-[25%] overflow-auto">
+        <h2 className="text-lg font-bold">Schedules</h2>
         <br />
-        {/* Fetch employee schedules only for this section */}
-        {/* Corrected: useState/useEffect outside IIFE, proper state usage */}
+
         {employeeSchedules.length === 0 ? (
           <p className="text-gray-500">No employee schedules found.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
             {employeeSchedules.map((s, idx) => (
-              <div class="flex flex-col justify-between min-h-[100%]">
-                <div key={idx} className={`hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card${deletedShiftId === s.id ? " dissolve" : ""}`} style={{transition: "opacity 0.5s", opacity: deletedShiftId === s.id ? 0 : 1, }}>
-                  <h3 className="font-bold text-lg mb-2 capitalize">
-                    {s.shift_name || s.type}
-                  </h3>
-                  <div className="space-y-1 text-sm">
-                    <div>
-                      <strong>Head Counts:</strong> {s.heads}
-                    </div>
-                    <div>
-                      <strong>Assigned Employees:</strong> {Array.isArray(s.employees) && s.employees.length > 0
-                        ? s.employees.map(emp => typeof emp === 'object' ? (emp.name || emp.employee_name || emp.employee_id) : emp).join(", ")
-                        : "None"}
-                    </div>
+            <div key={s.id || idx} className={`flex flex-col justify-between min-h-[100%] hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card ${ deletedShiftId === s.id ? "dissolve" : "" }`} style={{ transition: "opacity 0.5s", opacity: deletedShiftId === s.id ? 0 : 1,
+                }}>
+              <div className="space-y-1 text-sm">
+                <h3 className="font-bold text-lg mb-2 capitalize">
+                  {s.shift_name || s.type}
+                </h3>
+                  <div>
+                    <strong>Head Counts:</strong> {s.heads}
+                  </div>
+
+                  <div>
+                    <strong>Assigned Employees:</strong>{" "}
+                    {Array.isArray(s.employees) && s.employees.length > 0 ? (
+                      s.employees.map((emp, empIdx) => (
+                        <span key={emp.employee_id || empIdx}>
+                          {typeof emp === "object"
+                            ? emp.name ||
+                              emp.employee_name ||
+                              `#${emp.employee_id}`
+                            : emp}
+                          {empIdx < s.employees.length - 1 ? ", " : ""}
+                        </span>
+                      ))
+                    ) : (
+                      "None"
+                    )}
+            
                     <div>
                       <strong>Department:</strong> {s.department}
                     </div>
@@ -875,6 +879,7 @@ export default function Schedule() {
                       Delete
                     </Button>
                   </div> */}
+              </div>
                   <div className="mt-2 flex gap-2">
                     <Button
                       size="sm"
@@ -894,13 +899,22 @@ export default function Schedule() {
                           start_date: s.date_from,
                           end_date: s.date_to,
                           department: s.department,
-                          assigned_employees: [],
-                          schedule_id: s.schedule_id,
+                          assigned_employees: s.assigned_employees?.length
+                          ? s.assigned_employees
+                          : employees.filter(e => e.shift_id === s.id),
+
                           id: s.id,
                         })
                       }
                     >
-                      View
+                      Publish
+                    </Button>
+                    <Button 
+                    className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
+                    size="sm"
+                    variant="outline"
+                    >
+                      Edit
                     </Button>
                     <Button
                       className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
@@ -925,7 +939,6 @@ export default function Schedule() {
                     </Button>
                   </div>
                 </div>
-              </div>
             ))}
           </div>
         )}
@@ -1160,12 +1173,13 @@ export default function Schedule() {
       </div>
 
       {/* Modal for Adding/Editing/Publishing Employees */}
-      <Dialog open={openModal || openPublishModal} onOpenChange={val => { setOpenModal(false); setOpenPublishModal(false); }}>
+      <Dialog open={openModal || openPublishModal} onOpenChange={val => { setOpenPublishModal(val); }}>
         {openPublishModal ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
             <PublishScheduleModal
               open={openPublishModal}
               setOpen={setOpenPublishModal}
+              id={modalShift?.id}
               schedule={modalShift}
               employees={employees}
               getAvailableEmployees={getAvailableEmployees}
@@ -1234,10 +1248,14 @@ const deleteEmployeeSchedule = async (scheduleId) => {
 };
 
 async function handlePublishSchedule(scheduleData) {
+  const scheduleId = scheduleData?.id || modalShift?.id;
+  if (!scheduleId) {
+    toast.error("No schedule ID provided. Cannot publish.");
+    return;
+  }
   // Send publish request to backend
-  const response = await axios.post(hr3.backend.api.publish_schedule_detailed, {
-    schedule_id: scheduleData.id || scheduleData.shift_id,
-    ...scheduleData
+  const response = await axios.post(`${hr3.backend.api.employee_schedule}/${scheduleId}/publish`, {
+    status: "publish"
   });
   if (response.status === 200 || response.status === 201) {
     toast.success("Schedule published successfully!");

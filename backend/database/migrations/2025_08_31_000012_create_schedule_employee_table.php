@@ -21,6 +21,7 @@ class CreateScheduleEmployeeTable extends Migration
             $table->date('date_from');
             $table->date('date_to');
             $table->string('department')->nullable();
+            $table->enum('status', ['publish', 'unpublish'])->default('unpublish');
             $table->timestamps();
             $table->foreign('shift_id')->references('shift_id')->on('shift')->onDelete('set null');
         });

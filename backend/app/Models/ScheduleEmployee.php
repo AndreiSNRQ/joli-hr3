@@ -22,7 +22,8 @@ class ScheduleEmployee extends Model
         'time_end',
         'date_from',
         'date_to',
-        'department'
+        'department',
+        'status' // <-- add status to fillable
     ];
 
     protected $casts = [

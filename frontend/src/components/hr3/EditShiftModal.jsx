@@ -161,23 +161,27 @@ export default function EditShiftModal({
         )}
 
         <DialogFooter>
-  <Button onClick={() => onCreate({
-    ...modalShift,
-    assigned_employees: (modalShift.assigned_employees || []).map(emp => ({
-      employee_id: emp.employee_id,
-      name: emp.name,
-      department: emp.department
-    })),
-    shift_name: modalShift.shift_name,
-    type: modalShift.type || modalShift.shift_name,
-    heads: modalShift.heads || 1,
-    days: modalShift.days,
-    time_start: modalShift.start_time,
-    time_end: modalShift.end_time,
-    date_from: modalShift.start_date,
-    date_to: modalShift.end_date,
-    department: modalShift.department,
-  })}>Save Changes</Button>
+  <Button onClick={() => {
+    if (window.confirm('Are you sure you want to save changes to this shift?')) {
+      onCreate({
+        ...modalShift,
+        assigned_employees: (modalShift.assigned_employees || []).map(emp => ({
+          employee_id: emp.employee_id,
+          name: emp.name,
+          department: emp.department
+        })),
+        shift_name: modalShift.shift_name,
+        type: modalShift.type || modalShift.shift_name,
+        heads: modalShift.heads || 1,
+        days: modalShift.days,
+        time_start: modalShift.start_time,
+        time_end: modalShift.end_time,
+        date_from: modalShift.start_date,
+        date_to: modalShift.end_date,
+        department: modalShift.department,
+      });
+    }
+  }}>Save Changes</Button>
 </DialogFooter>
 
       </DialogContent>
