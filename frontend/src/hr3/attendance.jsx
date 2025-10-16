@@ -23,6 +23,7 @@ import { hr3 } from "@/api/hr3";
 import axios from "axios";
 import TermsDialog from "@/components/hr3/TermsDialog";
 import RequestCorrectionAttendance from "@/components/hr3/RequestCorrectionAttendance";
+import UpdateAttendanceModal from "@/components/hr3/UpdateAttendanceModal";
 
 
 
@@ -75,7 +76,7 @@ export default function Attendance() {
         console.error("Error fetching attendance data:", error);
       });
     // Fetch schedules
-    axios.get(hr3.backend.api.schedule)
+    axios.get(hr3.backend.api.employee_schedule)
       .then((response) => {
         let schedulesList = [];
         if (response.data.success && Array.isArray(response.data.data)) {
@@ -210,51 +211,36 @@ export default function Attendance() {
           </TableBody>
         </Table>
       </div>
+      {/* Edit Attendance Modal */}
       {editModalOpen && (
-        <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-          <div className="p-6 bg-white rounded shadow-lg max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Edit Attendance</h2>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                // The backend expects H:i format, but the state is in 12-hour format.
-                // This needs to be converted before sending.
-                // For now, we assume the input is correct or will be handled.
-                const response = await axios.put(`${hr3.backend.api.attendance}/${editRow.attendance_id}`, editRow);
-                toast.success('Attendance updated successfully!');
-                setEditModalOpen(false);
-
-                // Format the response for display before updating state
-                const formatTime = (datetimeStr) => {
-                  if (!datetimeStr) return '';
-                  const timeStr = datetimeStr.includes(' ') ? datetimeStr.split(' ')[1] : datetimeStr;
-                  const [hours, minutes] = timeStr.split(':');
-                  const hour = parseInt(hours, 10);
-                  const ampm = hour >= 12 ? 'PM' : 'AM';
-                  const hour12 = hour % 12 || 12;
-                  return `${hour12}:${minutes} ${ampm}`;
-                };
-                const updatedRecord = { ...response.data, timeIn: formatTime(response.data.timeIn), breakStart: formatTime(response.data.breakStart), breakEnd: formatTime(response.data.breakEnd), timeOut: formatTime(response.data.timeOut) };
-
-                // Refresh data
-                setData(data.map(d => d.attendance_id === editRow.attendance_id ? updatedRecord : d));
-              } catch (error) {
-                console.error('Failed to update attendance:', error);
-                toast.error('Failed to update attendance.');
-              }
-            }}>
-              <label className="block mb-2">Time In<input name="timeIn" value={editRow?.timeIn || ''} onChange={(e) => setEditRow({ ...editRow, timeIn: e.target.value })} className="border p-2 w-full" /></label>
-              <label className="block mb-2">Break Start<input name="breakStart" value={editRow?.breakStart || ''} onChange={(e) => setEditRow({ ...editRow, breakStart: e.target.value })} className="border p-2 w-full" /></label>
-              <label className="block mb-2">Break End<input name="breakEnd" value={editRow?.breakEnd || ''} onChange={(e) => setEditRow({ ...editRow, breakEnd: e.target.value })} className="border p-2 w-full" /></label>
-              <label className="block mb-2">Time Out<input name="timeOut" value={editRow?.timeOut || ''} onChange={(e) => setEditRow({ ...editRow, timeOut: e.target.value })} className="border p-2 w-full" /></label>
-              <label className="block mb-2">Status<input name="status" value={editRow?.status || ''} onChange={(e) => setEditRow({ ...editRow, status: e.target.value })} className="border p-2 w-full" /></label>
-              <div className="flex gap-2 mt-4">
-                <Button type="submit" variant="outline">Save</Button>
-                <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>Cancel</Button>
-              </div>
-            </form>
-          </div>
-        </Dialog>
+        <UpdateAttendanceModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          editRow={editRow}
+          setEditRow={setEditRow}
+          onSave={async (e) => {
+            e.preventDefault();
+            try {
+              const response = await axios.put(`${hr3.backend.api.attendance}/${editRow.attendance_id}`, editRow);
+              toast.success('Attendance updated successfully!');
+              setEditModalOpen(false);
+              const formatTime = (datetimeStr) => {
+                if (!datetimeStr) return '';
+                const timeStr = datetimeStr.includes(' ') ? datetimeStr.split(' ')[1] : datetimeStr;
+                const [hours, minutes] = timeStr.split(':');
+                const hour = parseInt(hours, 10);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minutes} ${ampm}`;
+              };
+              const updatedRecord = { ...response.data, timeIn: formatTime(response.data.timeIn), breakStart: formatTime(response.data.breakStart), breakEnd: formatTime(response.data.breakEnd), timeOut: formatTime(response.data.timeOut) };
+              setData(data.map(d => d.attendance_id === editRow.attendance_id ? updatedRecord : d));
+            } catch (error) {
+              console.error('Failed to update attendance:', error);
+              toast.error('Failed to update attendance.');
+            }
+          }}
+        />
       )}
       <div className="w-full justify-center flex">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>

@@ -66,7 +66,7 @@ export default function LeavePolicy() {
   };
 
   return (
-    <div className="-mt-5">
+    <div className="-mt-5 px-4">
       <div className="text-2xl font-bold mb-3">Leave Policy</div>
 
       <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md">

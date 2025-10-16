@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import TermsDialog from "@/components/hr3/TermsDialog";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ClaimsModule() {
   const [claims, setClaims] = useState([]);
@@ -112,10 +113,30 @@ export default function ClaimsModule() {
   };
 
   return (
-    <div className="p-6 space-y-10">
+    <div className="p-6 -mt-10">
       {/* ✅ Pending Claims */}
       <div>
         <h2 className="text-xl font-bold mb-3">Pending Claims</h2>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="flex flex-col items-center py-6">
+            <span className="text-2xl font-bold text-blue-700">{claims.filter(c => c.status === 'Pending').length}</span>
+            <span className="text-sm text-blue-700">Pending</span>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="flex flex-col items-center py-6">
+            <span className="text-2xl font-bold text-green-700">{claims.filter(c => c.status === 'Approved').length}</span>
+            <span className="text-sm text-green-700">Approved</span>
+          </CardContent>
+        </Card>
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="flex flex-col items-center py-6">
+            <span className="text-2xl font-bold text-red-700">{claims.filter(c => c.status === 'Rejected').length}</span>
+            <span className="text-sm text-red-700">Rejected</span>
+          </CardContent>
+        </Card>
+      </div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -247,6 +268,7 @@ export default function ClaimsModule() {
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
       </div>
       <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+
     </div>
   );
 }

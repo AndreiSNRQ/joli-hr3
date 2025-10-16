@@ -76,9 +76,9 @@ export default function EditTimesheetModal({ open, onOpenChange, employee, onSav
               value={formData.status}
               onChange={(e) => handleChange("status", e.target.value)}
             >
-              <option value="Pending">🟡 Pending</option>
-              <option value="Approved">🟢 Approved</option>
-              <option value="Rejected">🔴 Rejected</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
             </select>
           </div>
         </div>

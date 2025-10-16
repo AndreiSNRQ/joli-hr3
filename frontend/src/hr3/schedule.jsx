@@ -256,30 +256,31 @@ export default function Schedule() {
 
   const [employeeSchedules, setEmployeeSchedules] = useState([]);
   useEffect(() => {
-    const fetchEmployeeSchedules = () => {
-      axios.get(hr3.backend.api.employee_schedule.replace('_', '-'))
-        .then(res => {
-          // Group by shift_id
-          const grouped = {};
-          res.data.forEach(item => {
-            if (!grouped[item.id]) {
-              grouped[item.id] = {
-                ...item,
-                assigned_employees: [item.assigned_employees ? item.assigned_employees : (item.employee_id)],
-              };
-            } else {
-              // Merge employees
-              grouped[item.id].assigned_employees.push(item.assigned_employees ? item.assigned_employees : (item.employee_id));
-            }
-          });
-          setEmployeeSchedules(Object.values(grouped));
-        })
-        .catch(err => console.error(err));
+    const fetchEmployeeSchedules = async () => {
+      if (employees.length === 0) return;
+      try {
+        // Fetch all schedules first
+        const schedulesRes = await axios.get(hr3.backend.api.employee_schedule.replace('_', '-'));
+        const schedules = schedulesRes.data;
+        // For each schedule, fetch assigned employees using the provided API
+        const grouped = {};
+        for (const schedule of schedules) {
+          const assignedRes = await axios.get(`http://back.hr3workforceops.jolitravel.local/api/employee-schedule/assigned/${schedule.id}`);
+          const assignedEmployees = Array.isArray(assignedRes.data) ? assignedRes.data : assignedRes.data.data || [];
+          grouped[schedule.id] = {
+            ...schedule,
+            assigned_employees: assignedEmployees,
+          };
+        }
+        setEmployeeSchedules(Object.values(grouped));
+      } catch (err) {
+        console.error(err);
+      }
     };
     fetchEmployeeSchedules();
     const interval = setInterval(fetchEmployeeSchedules, 5000); // Refresh every 5 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [employees]);
   // Fetch employees and their schedules from backend
   const fetchEmployeesAndSchedules = async () => {
     try {
@@ -805,13 +806,11 @@ export default function Schedule() {
   ) : (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
       {employeeSchedules
-        .filter(s => s.status?.toLowerCase() === "unpublish") // ✅ only show unpublish
+        .filter(s => s.status?.toLowerCase() === "unpublish")
         .map((s, idx) => (
           <div
             key={s.id || idx}
-            className={`flex flex-col justify-between min-h-[100%] hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card ${
-              deletedShiftId === s.id ? "dissolve" : ""
-            }`}
+            className={`flex flex-col justify-between min-h-[100%] hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card ${deletedShiftId === s.id ? "dissolve" : ""}`}
             style={{
               transition: "opacity 0.5s",
               opacity: deletedShiftId === s.id ? 0 : 1,
@@ -828,15 +827,11 @@ export default function Schedule() {
 
               <div>
                 <strong>Assigned Employees:</strong>{" "}
-                {Array.isArray(s.employees) && s.employees.length > 0 ? (
-                  s.employees.map((emp, empIdx) => (
+                {Array.isArray(s.assigned_employees) && s.assigned_employees.length > 0 ? (
+                  s.assigned_employees.map((emp, empIdx) => (
                     <span key={emp.employee_id || empIdx}>
-                      {typeof emp === "object"
-                        ? emp.name ||
-                          emp.employee_name ||
-                          `#${emp.employee_id}`
-                        : emp}
-                      {empIdx < s.employees.length - 1 ? ", " : ""}
+                      {emp.employee_name || emp.name || `#${emp.employee_id}`}
+                      {empIdx < s.assigned_employees.length - 1 ? ", " : ""}
                     </span>
                   ))
                 ) : (

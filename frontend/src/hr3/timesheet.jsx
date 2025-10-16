@@ -113,7 +113,7 @@ export default function Timesheet() {
       </div>
 
       {/* Table */}
-      <div className="overflow-auto rounded-lg border min-h-[750px] max-h-[800px]">
+      <div className="overflow-auto rounded-lg border min-h-[700px] max-h-[700px]">
         <Table className="w-full">
           <TableCaption>Timesheet Records</TableCaption>
           <TableHeader>
@@ -155,7 +155,7 @@ export default function Timesheet() {
                     variant="outline"
                     size="sm"
                     className="mx-1"
-                    onClick={() => handleEdit(row)}
+                    onClick={() => handleEdit(row)} disabled
                   >
                     Edit
                   </Button>

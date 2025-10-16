@@ -84,7 +84,7 @@ class AttendanceController extends Controller
         ]);
 
         // Set date to now if not provided
-        $validated['created_at'] = now()->toDateString();
+        $validated['date'] = now()->toDateString();
 
         $attendance = Attendance::create($validated);
         
@@ -121,7 +121,7 @@ class AttendanceController extends Controller
 
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees,employee_id',
-            'date'        => 'required|date',
+            'date'        => 'nullable|date',
             'clock_in'    => 'nullable|date_format:H:i',
             'clock_out'   => 'nullable|date_format:H:i',
             'break_start' => 'nullable|date_format:H:i',

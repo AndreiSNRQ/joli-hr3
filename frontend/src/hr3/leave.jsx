@@ -202,7 +202,7 @@ export default function Leave() {
   };
 
   return (
-    <div className="px-4 -mt-4">
+    <div className="px-4 -mt-5">
       <div className="space-y-2">
         <p className="text-lg text-muted-foreground py-2">
           AI Leave Processing & Shift Scheduling using spaCy NLP
@@ -217,6 +217,26 @@ export default function Leave() {
 
         {/* Requests */}
         <TabsContent value="requests" className="">
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-blue-700">{leaveRequests.filter(l => l.status === 'Pending').length}</span>
+                <span className="text-sm text-blue-700">Pending</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-green-700">{leaveRequests.filter(l => l.status === 'Approved').length}</span>
+                <span className="text-sm text-green-700">Approved</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-red-700">{leaveRequests.filter(l => l.status === 'Rejected').length}</span>
+                <span className="text-sm text-red-700">Rejected</span>
+              </CardContent>
+            </Card>
+          </div>
           <Card>
             <CardContent className="">
               <div className="overflow-auto rounded-lg border min-h-[635px] max-h-[800px]">

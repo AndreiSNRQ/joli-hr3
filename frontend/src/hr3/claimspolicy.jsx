@@ -112,7 +112,7 @@ export default function ClaimsModule() {
   };
 
   return (
-    <div className="p-6 space-y-10">
+    <div className="p-4 -mt-8">
       {/* ✅ Pending Claims */}
       <div>
         <h2 className="text-xl font-bold mb-3">Pending Claims</h2>

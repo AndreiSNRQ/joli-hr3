@@ -86,7 +86,7 @@ class EmployeeScheduleController extends Controller
     public function index()
     {
         // Fetch all unpublished employee schedules
-        $schedules = \App\Models\ScheduleEmployee::with('shift')->get();
+        $schedules = ScheduleEmployee::with('shift')->get();
         $schedules->each(function ($schedule) {
             $schedule->employees = $schedule->employees; // This will use the accessor
         });
@@ -157,6 +157,18 @@ class EmployeeScheduleController extends Controller
         }
         $scheduleEmployee->status = 'publish';
         $scheduleEmployee->save();
-        return response()->json(['success' => true, 'data' => $scheduleEmployee]);
+
+        // Fetch employee details (including name)
+        $employeeIds = $scheduleEmployee->employee_ids;
+        if (!is_array($employeeIds)) {
+            $employeeIds = json_decode($employeeIds, true);
+        }
+        $employees = \App\Models\Employee::whereIn('employee_id', $employeeIds)->get(['employee_id', 'name']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $scheduleEmployee,
+            'employees' => $employees
+        ]);
     }
 }
