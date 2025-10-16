@@ -51,21 +51,16 @@ Route::get('/timesheet', [TimesheetController::class, 'index']);
 Route::post('/timesheet', [TimesheetController::class, 'store']);
 
 // SHIFT AND SCHEDULE
-Route::get('/schedule', [ScheduleController::class, 'index']);
 Route::post('/employee_schedule', [EmployeeScheduleController::class, 'store']);
 Route::get('/employee_schedule', [EmployeeScheduleController::class, 'index']);
 Route::get('/employee-schedule', [EmployeeScheduleController::class, 'index']);
 Route::get('/employee-schedule/assigned/{shift_id}', [EmployeeScheduleController::class, 'getAssignedEmployees']);
-Route::post('/schedule', [ScheduleController::class, 'store']);
 Route::get('/shift', [ShiftController::class, 'index']);
 Route::post('/shift', [ShiftController::class, 'store']);
 Route::put('/shift/{id}', [ShiftController::class, 'update']);
 // shift data only
 Route::get('/shift_data_only', [ShiftController::class, 'shiftDataOnly']);
 Route::delete('/shift/{id}', [ShiftController::class, 'destroy']);
-Route::get('/publish-schedule', [ScheduleController::class, 'getPublishedSchedules']);
-Route::get('/publish-schedule/{id}', [ScheduleController::class, 'getPublishedSchedules']);
-Route::post('/publish-schedule-detailed', [ScheduleController::class, 'publishScheduleDetailed']);
 // Update status of schedule_employee
 // Route::post('/employee_schedule/{id}/publish', [EmployeeScheduleController::class, 'updateStatus']);
 // Get a specific schedule_employee record
