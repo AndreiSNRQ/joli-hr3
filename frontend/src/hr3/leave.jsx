@@ -43,10 +43,11 @@ const getEventStyle = (event) => {
 
 // Dummy Data
 const dummyLeaveRequests = [
-  { id: 1, employee: "John Doe", type: "Sick Leave", startDate: "2025-09-03", endDate: "2025-09-04", reason: "Medical appointment", status: "Pending" },
-  { id: 2, employee: "Jane Smith", type: "Vacation Leave", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
-  { id: 3, employee: "Alice Johnson", type: "Emergency Leave", startDate: "2025-09-20", endDate: "2025-09-21", reason: "Family emergency", status: "Approved" },
-  { id: 4, employee: "Bob Wilson", type: "Vacation Leave", startDate: "2025-09-25", endDate: "2025-09-30", reason: "Summer vacation", status: "Approved" }
+  { id: 1, employee: "John Doe", type: "Sick Leave", date:"2025-08-31" , startDate: "2025-09-03", endDate: "2025-09-04", reason: "Medical appointment", status: "Pending" },
+  { id: 2, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
+  { id: 2, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
+  { id: 3, employee: "Alice Johnson", type: "Emergency Leave", date:"2025-08-31", startDate: "2025-09-20", endDate: "2025-09-21", reason: "Family emergency", status: "Approved" },
+  { id: 4, employee: "Bob Wilson", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-25", endDate: "2025-09-30", reason: "Summer vacation", status: "Approved" }
 ];
 
 const dummyLeaveBalances = [
@@ -113,6 +114,7 @@ export default function Leave() {
           id: record.id,
           employee: record.employeeName || 'Unknown',
           leave_type: record.leave_type || 'Vacation Leave',
+          date: record.date || new Date().toISOString().split('T')[0],
           startDate: record.start_date || new Date().toISOString().split('T')[0],
           endDate: record.end_date || new Date().toISOString().split('T')[0],
           reason: record.reason || 'Not specified',
@@ -223,8 +225,8 @@ export default function Leave() {
                   <TableRow>
                     <TableCell>Employee</TableCell>
                     <TableCell>Type</TableCell>
-                    <TableCell>Start Date</TableCell>
-                    <TableCell>End Date</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Set Date <span className="text-sm text-gray-500"> (from-to)</span> </TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
@@ -233,10 +235,10 @@ export default function Leave() {
                   {leaveRequests.map((req) => (
                     <TableRow key={req.id}>
                       <TableCell>{req.employee}</TableCell>
-                      <TableCell>{req.leave_type}</TableCell>
-                      <TableCell>{format(new Date(req.startDate), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell>{format(new Date(req.endDate), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell>
+                      <TableCell className="w-1/8">{req.type}</TableCell>
+                      <TableCell>{format(new Date(req.date), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell>{format(new Date(req.startDate), 'MMM dd, yyyy')} - {format(new Date(req.endDate), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell className="w-1/8">
                         <span className={`px-2 py-1 rounded-full text-sm ${
                           req.status === 'Approved' ? 'bg-green-100 text-green-800' :
                           req.status === 'Rejected' ? 'bg-red-100 text-red-800' :
@@ -245,7 +247,7 @@ export default function Leave() {
                           {req.status}
                         </span>
                       </TableCell>
-                      <TableCell className="space-x-2">
+                      <TableCell className="w-1/8 space-x-2">
                         <Button variant="outline" size="sm" onClick={() => handleViewRequest(req)}>View</Button>
                         <Button variant="default" size="sm" onClick={() => handleApprove(req.id)} disabled={req.status !== "Pending"}>Approve</Button>
                         <Button variant="destructive" size="sm" onClick={() => handleReject(req.id)} disabled={req.status !== "Pending"}>Reject</Button>

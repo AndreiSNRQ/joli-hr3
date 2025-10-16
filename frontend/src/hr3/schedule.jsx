@@ -100,14 +100,45 @@ function analyzeShift(input) {
     result.end_time = to24(eh, em);
   }
 
-  // Detect days
-  for (let d of DAYS) {
-    if (text.includes(d.toLowerCase().slice(0, 3))) {
-      result.days.push(d);
+  // Detect days (support ranges like "Monday - Friday")
+  const dayRangeRegex = /(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\s*(?:-|to)\s*(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i;
+  const dayRangeMatch = input.match(dayRangeRegex);
+  if (dayRangeMatch) {
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    let startIdx = daysOfWeek.findIndex(
+      (d) => d.toLowerCase() === dayRangeMatch[1].toLowerCase()
+    );
+    let endIdx = daysOfWeek.findIndex(
+      (d) => d.toLowerCase() === dayRangeMatch[2].toLowerCase()
+    );
+    if (startIdx !== -1 && endIdx !== -1) {
+      if (startIdx <= endIdx) {
+        result.days = daysOfWeek.slice(startIdx, endIdx + 1);
+      } else {
+        // Wrap around week
+        result.days = [
+          ...daysOfWeek.slice(startIdx),
+          ...daysOfWeek.slice(0, endIdx + 1),
+        ];
+      }
     }
-  }
-  if (result.days.length === 0) {
-    result.days = DAYS;
+  } else {
+    for (let d of DAYS) {
+      if (text.includes(d.toLowerCase().slice(0, 3))) {
+        result.days.push(d);
+      }
+    }
+    if (result.days.length === 0) {
+      result.days = DAYS;
+    }
   }
 
   // Detect department (multiple allowed)
@@ -137,6 +168,21 @@ function analyzeShift(input) {
   const weekMatch = input.match(/(\d+)\s*weeks?/i);
   if (weekMatch) weeks = parseInt(weekMatch[1], 10);
 
+  // Detect duration (months)
+  let months = 0;
+  const monthMatch = input.match(/for\s*(\d+)\s*months?/i);
+  if (monthMatch) {
+    months = parseInt(monthMatch[1], 10);
+    weeks = 0; // If months are specified, ignore weeks
+  } else {
+    // Also handle "for 1 month" without "for"
+    const altMonthMatch = input.match(/(\d+)\s*months?/i);
+    if (altMonthMatch) {
+      months = parseInt(altMonthMatch[1], 10);
+      weeks = 0;
+    }
+  }
+
   // Smart start/end date alignment
   if (result.days.length > 0) {
     const daysOfWeek = [
@@ -151,7 +197,6 @@ function analyzeShift(input) {
     const todayIdx = now.getDay();
     const firstDayIdx = daysOfWeek.indexOf(result.days[0]);
     const lastDayIdx = daysOfWeek.indexOf(result.days[result.days.length - 1]);
-
     let diff = (firstDayIdx - todayIdx + 7) % 7;
     if (diff === 0) diff = 7;
     const startDate = new Date(now);
@@ -159,7 +204,15 @@ function analyzeShift(input) {
 
     const lastDiff = (lastDayIdx - firstDayIdx + 7) % 7;
     const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + (weeks - 1) * 7 + lastDiff);
+    if (months > 0) {
+      // Add months to startDate for endDate
+      endDate.setMonth(startDate.getMonth() + months);
+      // Optionally, align endDate to the last day in result.days
+      // This keeps the end date on the same weekday as the last day in the range
+      endDate.setDate(endDate.getDate() + lastDiff);
+    } else {
+      endDate.setDate(startDate.getDate() + (weeks - 1) * 7 + lastDiff);
+    }
 
     result.start_date = startDate.toISOString().slice(0, 10);
     result.end_date = endDate.toISOString().slice(0, 10);
@@ -250,57 +303,20 @@ export default function Schedule() {
       }
       setEmployees(employeesList);
 
-      // Fetch only published schedules
+      // Fetch only shifts
       const publishedSchedulesResponse = await axios.get(
         hr3.backend.api.shift_data_only
       );
+      
       let publishedSchedulesList = [];
 
       if (!publishedSchedulesResponse.data.success) {
         throw new Error(
           publishedSchedulesResponse.data.message ||
-            "Failed to fetch published schedules"
+            "Failed to fetch Shifts"
         );
-      }
 
-      if (Array.isArray(publishedSchedulesResponse.data.data)) {
-        publishedSchedulesList = publishedSchedulesResponse.data.data.map(
-          (backend) => ({
-            id: backend.shift_id,
-            type: backend.type,
-            heads: backend.heads,
-            start_time: backend.time_start,
-            end_time: backend.time_end,
-            date_from: backend.date_from,
-            date_to: backend.date_to,
-            employee_id: backend.employee_id,
-            employee_name: backend.employee_name,
-            department: backend.department,
-            days: backend.days,
-            status: backend.status,
-            assigned_employees: backend.assigned_employees || [],
-            shift_name: backend.shift_name || backend.type || "",
-          })
-        );
-      } else if (Array.isArray(publishedSchedulesResponse.data)) {
-        publishedSchedulesList = publishedSchedulesResponse.data.map(
-          (backend) => ({
-            id: backend.shift_id,
-            type: backend.type,
-            heads: backend.heads,
-            start_time: backend.time_start,
-            end_time: backend.time_end,
-            date_from: backend.date_from,
-            date_to: backend.date_to,
-            employee_id: backend.employee_id,
-            employee_name: backend.employee_name,
-            department: backend.department,
-            days: backend.days,
-            status: backend.status,
-            assigned_employees: backend.assigned_employees || [],
-            shift_name: backend.shift_name || backend.type || "",
-          })
-        );
+
       }
       setPublishedShifts(publishedSchedulesList);
 
@@ -687,7 +703,7 @@ export default function Schedule() {
       </div>
 
       {/* Shifts */}
-      <div className="px-4 py-2 border rounded bg-white shadow max-h-[30%] min-h-[20%] overflow-auto ">
+      <div className="px-4 py-2 border rounded bg-white shadow max-h-[39%] min-h-[20%] overflow-auto ">
         <h2 className="text-lg font-bold">Shifts</h2>
         <br />
         {savedShifts.length === 0 ? (
@@ -709,9 +725,9 @@ export default function Schedule() {
                   <div className="capitalize">
                     <strong>Type:</strong> {s.type}
                   </div>
-                  <div>
+                  <div className="overflow-hidden">
                     <strong>Days:</strong>{" "}
-                    {Array.isArray(s.days) ? s.days.join(", ") : s.days}
+                    <span className="text-wrap">{Array.isArray(s.days) ? s.days.join(", ") : s.days}</span>
                   </div>
                   <div>
                     <strong>Time:</strong> {s.time_start} – {s.time_end}
@@ -779,170 +795,135 @@ export default function Schedule() {
         )}
       </div>
 
-      {/* Employee Schedule */}
-      <div className="px-4 py-2 border rounded bg-white shadow max-h-[30.5%] min-h-[25%] overflow-auto">
-        <h2 className="text-lg font-bold">Schedules</h2>
-        <br />
+{/* Employee Schedule */}
+<div className="px-4 py-2 border rounded bg-white shadow max-h-[30.5%] min-h-[25%] overflow-auto">
+  <h2 className="text-lg font-bold">Schedules</h2>
+  <br />
 
-        {employeeSchedules.length === 0 ? (
-          <p className="text-gray-500">No employee schedules found.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
-            {employeeSchedules.map((s, idx) => (
-            <div key={s.id || idx} className={`flex flex-col justify-between min-h-[100%] hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card ${ deletedShiftId === s.id ? "dissolve" : "" }`} style={{ transition: "opacity 0.5s", opacity: deletedShiftId === s.id ? 0 : 1,
-                }}>
-              <div className="space-y-1 text-sm">
-                <h3 className="font-bold text-lg mb-2 capitalize">
-                  {s.shift_name || s.type}
-                </h3>
-                  <div>
-                    <strong>Head Counts:</strong> {s.heads}
-                  </div>
+  {employeeSchedules.length === 0 ? (
+    <p className="text-gray-500">No employee schedules found.</p>
+  ) : (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+      {employeeSchedules
+        .filter(s => s.status?.toLowerCase() === "unpublish") // ✅ only show unpublish
+        .map((s, idx) => (
+          <div
+            key={s.id || idx}
+            className={`flex flex-col justify-between min-h-[100%] hover:border-2 hover:border-gray-400 border rounded-lg p-4 mb-2 bg-gray-50 max-w-[290px] shadow saved-shift-card ${
+              deletedShiftId === s.id ? "dissolve" : ""
+            }`}
+            style={{
+              transition: "opacity 0.5s",
+              opacity: deletedShiftId === s.id ? 0 : 1,
+            }}
+          >
+            <div className="space-y-1 text-sm">
+              <h3 className="font-bold text-lg mb-2 capitalize">
+                {s.shift_name || s.type}
+              </h3>
 
-                  <div>
-                    <strong>Assigned Employees:</strong>{" "}
-                    {Array.isArray(s.employees) && s.employees.length > 0 ? (
-                      s.employees.map((emp, empIdx) => (
-                        <span key={emp.employee_id || empIdx}>
-                          {typeof emp === "object"
-                            ? emp.name ||
-                              emp.employee_name ||
-                              `#${emp.employee_id}`
-                            : emp}
-                          {empIdx < s.employees.length - 1 ? ", " : ""}
-                        </span>
-                      ))
-                    ) : (
-                      "None"
-                    )}
-            
-                    <div>
-                      <strong>Department:</strong> {s.department}
-                    </div>
-                    <div className="capitalize">
-                      <strong>Type:</strong> {s.type}
-                    </div>
-                    <div>
-                      <strong>Days:</strong>{" "}
-                      {Array.isArray(s.days) ? s.days.join(", ") : s.days}
-                    </div>
-                    <div>
-                      <strong>Time:</strong> {s.time_start} – {s.time_end}
-                    </div>
-                  </div>
-                  {/* <div className="mt-2 flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        openPublishScheduleModal({
-                          shift_name: s.shift_name || s.type,
-                          heads: s.heads,
-                          type: s.type,
-                          days: Array.isArray(s.days)
-                            ? s.days
-                            : typeof s.days === "string"
-                            ? s.days.split(",").map((d) => d.trim())
-                            : [],
-                          start_time: s.time_start,
-                          end_time: s.time_end,
-                          start_date: s.date_from,
-                          end_date: s.date_to,
-                          department: s.department,
-                          assigned_employees: [],
-                          schedule_id: s.schedule_id,
-                          id: s.id,
-                        })
-                      }
-                    >
-                      View
-                    </Button>
-                    <Button
-                      className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this Schedule?"
-                          )
-                        ) {
-                          setDeletedShiftId(s.id);
-                          setTimeout(() => {
-                            deleteEmployeeSchedule(s.id);
-                            setDeletedShiftId(null);
-                            fetchEmployeesAndSchedules();
-                          }, 150);
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div> */}
+              <div>
+                <strong>Head Counts:</strong> {s.heads}
               </div>
-                  <div className="mt-2 flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        openPublishScheduleModal({
-                          shift_name: s.shift_name || s.type,
-                          heads: s.heads,
-                          type: s.type,
-                          days: Array.isArray(s.days)
-                            ? s.days
-                            : typeof s.days === "string"
-                            ? s.days.split(",").map((d) => d.trim())
-                            : [],
-                          start_time: s.time_start,
-                          end_time: s.time_end,
-                          start_date: s.date_from,
-                          end_date: s.date_to,
-                          department: s.department,
-                          assigned_employees: s.assigned_employees?.length
-                          ? s.assigned_employees
-                          : employees.filter(e => e.shift_id === s.id),
 
-                          id: s.id,
-                        })
-                      }
-                    >
-                      Publish
-                    </Button>
-                    <Button 
-                    className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
-                    size="sm"
-                    variant="outline"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this Schedule?"
-                          )
-                        ) {
-                          setDeletedShiftId(s.id);
-                          setTimeout(() => {
-                            deleteEmployeeSchedule(s.id);
-                            setDeletedShiftId(null);
-                            fetchEmployeesAndSchedules();
-                          }, 150);
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-            ))}
+              <div>
+                <strong>Assigned Employees:</strong>{" "}
+                {Array.isArray(s.employees) && s.employees.length > 0 ? (
+                  s.employees.map((emp, empIdx) => (
+                    <span key={emp.employee_id || empIdx}>
+                      {typeof emp === "object"
+                        ? emp.name ||
+                          emp.employee_name ||
+                          `#${emp.employee_id}`
+                        : emp}
+                      {empIdx < s.employees.length - 1 ? ", " : ""}
+                    </span>
+                  ))
+                ) : (
+                  "None"
+                )}
+              </div>
+
+              <div>
+                <strong>Department:</strong> {s.department}
+              </div>
+              <div className="capitalize">
+                <strong>Type:</strong> {s.type}
+              </div>
+              <div>
+                <strong>Days:</strong>{" "}
+                {Array.isArray(s.days) ? s.days.join(", ") : s.days}
+              </div>
+              <div>
+                <strong>Time:</strong> {s.time_start} – {s.time_end}
+              </div>
+            </div>
+
+            <div className="mt-2 flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  openPublishScheduleModal({
+                    shift_name: s.shift_name || s.type,
+                    heads: s.heads,
+                    type: s.type,
+                    days: Array.isArray(s.days)
+                      ? s.days
+                      : typeof s.days === "string"
+                      ? s.days.split(",").map((d) => d.trim())
+                      : [],
+                    start_time: s.time_start,
+                    end_time: s.time_end,
+                    start_date: s.date_from,
+                    end_date: s.date_to,
+                    department: s.department,
+                    assigned_employees: s.assigned_employees?.length
+                      ? s.assigned_employees
+                      : employees.filter((e) => e.shift_id === s.id),
+                    id: s.id,
+                  })
+                }
+              >
+                Publish
+              </Button>
+
+              <Button
+                className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
+                size="sm"
+                variant="outline"
+              >
+                Edit
+              </Button>
+
+              <Button
+                className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete this Schedule?"
+                    )
+                  ) {
+                    setDeletedShiftId(s.id);
+                    setTimeout(() => {
+                      deleteEmployeeSchedule(s.id);
+                      setDeletedShiftId(null);
+                      fetchEmployeesAndSchedules();
+                    }, 150);
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            </div>
           </div>
-        )}
-      </div>
+        ))}
+    </div>
+  )}
+</div>
+
 
       {/* Unpublished employee schedules
       <div className="p-4 border rounded bg-white shadow max-h-[35%] overflow-auto ">
@@ -1050,7 +1031,7 @@ export default function Schedule() {
       {/* Published Shifts as Calendar */}
       <div className="px-4 py-2 border rounded bg-white shadow">
         <h2 className="text-lg font-bold">Published Shifts & Schedules</h2>
-        {publishedShifts.length === 0 ? (
+        {employeeSchedules.filter(s => s.status === "publish").length === 0 ? (
           <p className="text-gray-500">No active shifts.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -1072,8 +1053,9 @@ export default function Schedule() {
                       {dept.label}
                     </TableCell>
                     {DAYS.map((day) => {
-                      const shiftsForDay = publishedShifts.filter(
+                      const shiftsForDay = employeeSchedules.filter(
                         (s) =>
+                          s.status === "publish" &&
                           (Array.isArray(s.department)
                             ? s.department
                             : [s.department ?? ""]
@@ -1100,7 +1082,7 @@ export default function Schedule() {
                                     </p>
                                     <span
                                       className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${
-                                        shift.status === "Active"
+                                        shift.status === "publish"
                                           ? "bg-green-100 text-green-700"
                                           : "bg-gray-200 text-gray-700"
                                       }`}
@@ -1109,12 +1091,20 @@ export default function Schedule() {
                                     </span>
                                   </div>
                                   <p>
-                                    {shift.start_time} - {shift.end_time}
+                                    {shift.time_start} - {shift.time_end}
                                   </p>
                                   <p className="text-xs text-gray-600">
-                                    {shift.assigned_employees
-                                      ?.map((e) => e.name)
-                                      .join(", ") || "No employees"}
+                                    {shift.assigned_employees &&
+                                      shift.assigned_employees.length > 0 ? (
+                                      shift.assigned_employees.map((e, idx) => (
+                                        <span key={idx}>
+                                          {e?.name || e?.employee_name || (e?.employee_id ? `#${e.employee_id}` : "Unknown")}
+                                          {idx !== shift.assigned_employees.length - 1 ? ", " : ""}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span>No employees assigned</span>
+                                    )}
                                   </p>
                                 </div>
                               ))}
