@@ -97,7 +97,7 @@ export default function scheduleswap() {
 
   return (
     <div className="-mt-5">
-      <h1 className="text-2xl font-bold mb-3">Correction Requests</h1>
+      <h1 className="text-2xl font-bold mb-3">Swap Requests</h1>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
               <CardContent className="flex flex-col items-center py-6">

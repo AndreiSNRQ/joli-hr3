@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
 import { format } from "date-fns";
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parse, startOfWeek, getDay } from 'date-fns';
 import TermsDialog from "@/components/hr3/TermsDialog";
 import enUS from 'date-fns/locale/en-US';
+import AddLeaveModal from "@/components/hr3/AddLeaveModal";
 
 const locales = {
   'en-US': enUS,
@@ -45,9 +45,9 @@ const getEventStyle = (event) => {
 const dummyLeaveRequests = [
   { id: 1, employee: "John Doe", type: "Sick Leave", date:"2025-08-31" , startDate: "2025-09-03", endDate: "2025-09-04", reason: "Medical appointment", status: "Pending" },
   { id: 2, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
-  { id: 2, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
-  { id: 3, employee: "Alice Johnson", type: "Emergency Leave", date:"2025-08-31", startDate: "2025-09-20", endDate: "2025-09-21", reason: "Family emergency", status: "Approved" },
-  { id: 4, employee: "Bob Wilson", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-25", endDate: "2025-09-30", reason: "Summer vacation", status: "Approved" }
+  { id: 3, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
+  { id: 4, employee: "Alice Johnson", type: "Emergency Leave", date:"2025-08-31", startDate: "2025-09-20", endDate: "2025-09-21", reason: "Family emergency", status: "Approved" },
+  { id: 5, employee: "Bob Wilson", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-25", endDate: "2025-09-30", reason: "Summer vacation", status: "Approved" }
 ];
 
 const dummyLeaveBalances = [
@@ -93,8 +93,28 @@ export default function Leave() {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [calendarView, setCalendarView] = useState('month');
   const [openTermsDialog, setOpenTermsDialog] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newLeave, setNewLeave] = useState({ employee: "", type: "", startDate: "", endDate: "", reason: "" });
 
-  
+  const handleAddLeave = (e) => {
+    e.preventDefault();
+    setLeaveRequests([
+      ...leaveRequests,
+      {
+        id: leaveRequests.length + 1,
+        employee: newLeave.employee,
+        type: newLeave.type,
+        date: new Date().toISOString().split('T')[0],
+        startDate: newLeave.startDate,
+        endDate: newLeave.endDate,
+        reason: newLeave.reason,
+        status: "Pending"
+      }
+    ]);
+    setIsAddModalOpen(false);
+    setNewLeave({ employee: "", type: "", startDate: "", endDate: "", reason: "" });
+  };
+
   // Fetch leave requests from backend
   useEffect(() => {
     const fetchLeaveRequests = async () => {
@@ -239,26 +259,31 @@ export default function Leave() {
           </div>
           <Card>
             <CardContent className="">
-              <div className="overflow-auto rounded-lg min-h-[635px] max-h-[800px]">
+              <div className="overflow-auto rounded-lg min-h-[490px] max-h-[600px]">
+                <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddModalOpen(true)}>
+                  Add Leave Request
+                </Button>
               <Table className="px-3">
                 <TableHeader className="bg-gray-100">
                   <TableRow>
+                    <TableCell>#</TableCell>
                     <TableCell>Employee</TableCell>
                     <TableCell>Type</TableCell>
                     <TableCell>Date</TableCell>
                     <TableCell>Set Date <span className="text-sm text-gray-500"> (from-to)</span> </TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell className="w-1/8 text-center">Status</TableCell>
+                    <TableCell className="w-1/8 text-center">Actions</TableCell>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {leaveRequests.map((req) => (
                     <TableRow key={req.id}>
-                      <TableCell>{req.employee}</TableCell>
-                      <TableCell className="w-1/8">{req.type}</TableCell>
+                      <TableCell>{req.id}</TableCell>
+                      <TableCell className="">{req.employee}</TableCell>
+                      <TableCell className="">{req.type}</TableCell>
                       <TableCell>{format(new Date(req.date), 'MMM dd, yyyy')}</TableCell>
                       <TableCell>{format(new Date(req.startDate), 'MMM dd, yyyy')} - {format(new Date(req.endDate), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell className="w-1/8">
+                      <TableCell className="text-center">
                         <span className={`px-2 py-1 rounded-full text-sm ${
                           req.status === 'Approved' ? 'bg-green-100 text-green-800' :
                           req.status === 'Rejected' ? 'bg-red-100 text-red-800' :
@@ -407,9 +432,16 @@ export default function Leave() {
         </DialogContent>
       </Dialog>
       <div className="w-full justify-center flex">
-        <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
+        <p className="text-sm text-blue-500 py-2 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
       </div>
       <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+      <AddLeaveModal
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        onSubmit={handleAddLeave}
+        leaveData={newLeave}
+        setLeaveData={setNewLeave}
+      />
     </div>
   );  
 }
