@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Shift extends Model
 {
     protected $table = 'shift';
@@ -23,6 +24,6 @@ class Shift extends Model
 
     public function schedules()
     {
-        return $this->hasMany(Schedule::class, 'shift_id');
+        return $this->hasMany(ScheduleEmployee::class, 'shift_id');
     }
 }
