@@ -18,23 +18,10 @@ import axios from "axios";
 import { hr3 } from "@/api/hr3";
 import TermsDialog from "@/components/hr3/TermsDialog";
 
-// Table columns
-const columns = [
-  { id: "employeeName", label: "Name" },
-  { id: "date", label: "Date" },
-  { id: "timeIn", label: "Time In" },
-  { id: "breakIn", label: "Break In" },
-  { id: "breakOut", label: "Break Out" },
-  { id: "timeOut", label: "Time Out" },
-  { id: "total", label: "Total" },
-  { id: "schedule", label: "Schedule Time" },
-  { id: "status", label: "Status" },
-  { id: "action", label: "Action" },
-];
 
 // Default data in case API fails
 const defaultData = [
-  { employeeName: "John Doe", date: "2023-01-01", timeIn: "08:00", breakIn: "12:00", breakOut: "13:00", timeOut: "17:00", total: "8:00", status: "Approved", schedule: "8:00-17:00" },
+  { employeeName: "John Doe", department:"IT", type: "Contract"},
 ];
 
 // Group employees by first record
@@ -100,33 +87,61 @@ export default function ApprovedTimesheet() {
     );
   };
 
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterName, setFilterName] = useState("");
+
   return (
     <div className="h-full overflow-auto -mt-5 px-4">
       <h1 className="text-2xl font-bold mb-4">Approved Timesheets</h1>
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader><CardTitle>Pending</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-green-600">3</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Approved</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-red-600">1</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Rejected</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-yellow-600">0</CardContent>
-        </Card>
-      </div>
-      <div className="overflow-auto rounded-lg border min-h-[580px] max-h-[800px]">
-              <Table className="w-full">
+          {/* <div className="grid grid-cols-3 gap-4 mb-4">
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-blue-700">{data.filter(l => l.status === 'Pending').length}</span>
+                <span className="text-sm text-blue-700">Pending</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-green-700">{data.filter(l => l.status === 'Approved').length}</span>
+                <span className="text-sm text-green-700">Approved</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-red-700">{data.filter(l => l.status === 'Rejected').length}</span>
+                <span className="text-sm text-red-700">Rejected</span>
+              </CardContent>
+            </Card>
+          </div> */}
+      <div className="overflow-auto rounded-lg px-3 border min-h-[750px] max-h-[800px]">
+        <div className="flex gap-4 my-4">
+          <input
+          type="text"
+          placeholder="Search by name..."
+          className="border rounded-md px-3 py-2 w-48"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          />
+          <select
+            className="border rounded-md px-3 py-2 w-48"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+  
+      <Table className="w-full">
         <TableCaption>Pending Timesheets</TableCaption>
-        <TableHeader>
-          <TableRow className="bg-gray-100">
-            {columns.map((column) => (
-              <TableHead key={column.id}>{column.label}</TableHead>
-            ))}
-          </TableRow>
+        <TableHeader className="bg-gray-100">
+          <TableCell>Name</TableCell>
+          <TableCell>Department</TableCell>
+          <TableCell>Type</TableCell>
+          <TableCell>Action</TableCell>
         </TableHeader>
         <TableBody className="bg-white p-2">
           {(showAllRecords
@@ -152,14 +167,8 @@ export default function ApprovedTimesheet() {
                 />
               )}
               <TableCell>{row.employeeName}</TableCell>
-              <TableCell>{row.date}</TableCell>
-              <TableCell>{row.timeIn}</TableCell>
-              <TableCell>{row.breakIn}</TableCell>
-              <TableCell>{row.breakOut}</TableCell>
-              <TableCell>{row.timeOut}</TableCell>
-              <TableCell>{row.total}</TableCell>
-              <TableCell>{row.schedule}</TableCell>
-              <TableCell>{row.status}</TableCell>
+              <TableCell>{row.department}</TableCell>
+              <TableCell>{row.type}</TableCell>
               <TableCell className="flex gap-2">
                 <Button
                   variant="outline"
@@ -171,14 +180,7 @@ export default function ApprovedTimesheet() {
                     setShowAllRecords(true);
                   }}
                 >
-                  Approve
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleApprove(row)}
-                >
-                  Reject
+                  View
                 </Button>
               </TableCell>
             </TableRow>

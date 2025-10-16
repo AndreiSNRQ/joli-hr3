@@ -122,14 +122,14 @@ export default function Attendance() {
   };
 
   return (
-    <div className="px-6">
+    <div className="px-4">
       <h1 className="text-2xl font-bold -mt-5 mb-4">Attendance</h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+      {/* <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardHeader><CardTitle>Present</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-green-600">{presentCount}</CardContent>
+          <CardContent className="text-3xl font-bold text-green-600"> {presentCount}</CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle>Absent</CardTitle></CardHeader>
@@ -143,7 +143,28 @@ export default function Attendance() {
           <CardHeader><CardTitle>On Leave</CardTitle></CardHeader>
           <CardContent className="text-3xl font-bold text-blue-600">{leaveCount}</CardContent>
         </Card>
-      </div>
+      </div> */}
+
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-blue-700">{presentCount}</span>
+                <span className="text-sm text-blue-700">Present</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-200 hover:bg-green-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-green-700">{absentCount}</span>
+                <span className="text-sm text-green-700">Absent</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-red-50 border-red-200 hover:bg-red-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-red-700">{lateCount}</span>
+                <span className="text-sm text-red-700">Late</span>
+              </CardContent>
+            </Card>
+          </div>
 
       {/* Actions + Search */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4 sticky top-0 bg-white z-10 py-2">

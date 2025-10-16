@@ -12,6 +12,10 @@ const defaultPolicies = [
   { id: 2, type: "Sick Leave", date: "2025-01-01", policyName: "Paid Sick Days", description: "Employees can take up to 10 days of paid sick leave annually.", status: "Active" },
   { id: 3, type: "Maternity Leave", date: "2025-01-01", policyName: "105-Day Maternity Leave", description: "Female employees are entitled to 105 days of paid maternity leave.", status: "Active" },
   { id: 4, type: "Paternity Leave", date: "2025-01-01", policyName: "7-Day Paternity Leave", description: "Male employees are entitled to 7 days of paid leave upon childbirth of spouse.", status: "Active" },
+  { id: 5, type: "Vacation Leave", date: "2025-01-01", policyName: "Annual Paid Leave", description: "Employees get 15 days of paid vacation leave per year.", status: "Active" },
+  { id: 6, type: "Sick Leave", date: "2025-01-01", policyName: "Paid Sick Days", description: "Employees can take up to 10 days of paid sick leave annually.", status: "Active" },
+  { id: 7, type: "Maternity Leave", date: "2025-01-01", policyName: "105-Day Maternity Leave", description: "Female employees are entitled to 105 days of paid maternity leave.", status: "Active" },
+  { id: 8, type: "Paternity Leave", date: "2025-01-01", policyName: "7-Day Paternity Leave", description: "Male employees are entitled to 7 days of paid leave upon childbirth of spouse.", status: "Active" },
 ];
 
 export default function LeavePolicy() {
@@ -65,47 +69,74 @@ export default function LeavePolicy() {
     }
   };
 
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterName, setFilterName] = useState("");
   return (
-    <div className="-mt-5 px-4">
-      <div className="text-2xl font-bold mb-3">Leave Policy</div>
+    <div className="-mt-5 px-4 min-h-[800px]">
+      <div className="text-2xl font-bold mb-3">
+        Leave Policy
+      </div>
 
       <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md">
         Add Leave Type
       </Button>
 
-      <div className="overflow-auto rounded-lg border min-h-[650px] max-h-[800px]">
-        <Table>
-          <TableCaption>Leave Types and Policies</TableCaption>
-          <TableHeader>
-            <TableRow className="bg-gray-200">
-              <TableHead className="font-medium">#</TableHead>
-              <TableHead className="font-medium">Type</TableHead>
-              <TableHead className="font-medium">Effective Date</TableHead>
-              <TableHead className="font-medium">Policy Name</TableHead>
-              <TableHead className="font-medium">Status</TableHead>
-              <TableHead className="font-medium text-right">Action</TableHead>
+      <div className="max-h-[full] rounded-lg border pt-5 px-4 space-y-4">
+        {/* filter */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <input
+          type="text"
+          placeholder="Search by name..."
+          className="border rounded-md px-3 py-2 w-50"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+        />
+        <select
+          className="border rounded-md px-3  py-2 w-50"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="">All Status</option>
+          <option value="Pending">Active</option>
+          <option value="Approved">Not Active</option>
+        </select>
+        </div>
+        <div className="min-h-[600px] max-h-[400px] overflow-y-auto">
+          <Table>
+          <TableCaption>Policy Table</TableCaption>
+          <TableHeader >
+            <TableRow className="bg-gray-100">
+              <TableHead className="font-medium w-1/16 text-center">#</TableHead>
+              <TableHead className="font-medium w=-1/4 text-center">Name</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Accrual</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Max Balance</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Carry</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Status</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {policies.map((policy) => (
               <TableRow key={policy.id}>
-                <TableCell>{policy.id}</TableCell>
-                <TableCell>{policy.type}</TableCell>
-                <TableCell>{policy.date}</TableCell>
-                <TableCell>{policy.policyName}</TableCell>
-                <TableCell>{policy.status}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="sm" className="mx-1" onClick={() => handleView(policy)}>View</Button>
-                  <Button variant="outline" size="sm" className="mx-1" onClick={() => handleUpdate(policy)}>Update</Button>
-                  <Button variant="outline" size="sm" className="mx-1" onClick={() => handleDelete(policy)}>Delete</Button>
+                <TableCell className="text-center">{policy.id}</TableCell>
+                <TableCell className="text-rigth">{policy.type}</TableCell>
+                <TableCell className="text-center">{policy.date}</TableCell>
+                <TableCell className="text-rigth">{policy.policyName}</TableCell>
+                <TableCell className="text-center">{policy.status}</TableCell>
+                <TableCell className="text-center">{policy.status}</TableCell>
+                <TableCell className="text-center space-x-3">
+                  <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600 hover:text-white" onClick={() => handleView(policy)}>View</Button>
+                  <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" onClick={() => handleUpdate(policy)}>Update</Button>
+                  <Button className="bg-red-500 text-white hover:bg-red-600 hover:text-white" variant="outline" size="sm" onClick={() => handleDelete(policy)}>Delete</Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        </div>
       </div>
 
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center items-end">
         <p
           className="text-sm text-blue-500 py-5 cursor-pointer"
           onClick={() => setOpenTermsDialog(true)}

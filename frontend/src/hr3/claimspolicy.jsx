@@ -1,252 +1,151 @@
-import React, { useState, useEffect } from "react";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { hr3 } from "@/api/hr3";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import TermsDialog from "@/components/hr3/TermsDialog";
 
-export default function ClaimsModule() {
-  const [claims, setClaims] = useState([]);
-  
-  // Fetch claims from backend
-  useEffect(() => {
-    const fetchClaims = async () => {
-      try {
-        const response = await axios.get(hr3.backend.api.claims);
-        
-        let records = [];
-        if (Array.isArray(response.data)) {
-          // plain array
-          records = response.data;
-        } else if (response.data && Array.isArray(response.data.data)) {
-          // paginated response
-          records = response.data.data;
-        }
-        
-        const mappedRecords = records.map(record => ({
-          id: record.id,
-          employee: record.employeeName || 'Unknown',
-          type: record.claim_type || 'Other',
-          category: record.claim_type || 'Other',
-          amount: record.amount || 0,
-          status: record.status || 'Pending',
-          img: image, // Default image for now
-        }));
-        
-        setClaims(mappedRecords);
-      } catch (error) {
-        console.error("Error fetching claims:", error);
-        // Keep default data if fetch fails
-        setClaims([
-          {
-            id: 1,
-            employee: "Juan Dela Cruz",
-            type: "Travel",
-            category: "Transportation",
-            amount: 1200,
-            status: "Pending",
-            img: image,
-          },
-          {
-            id: 2,
-            employee: "Maria Santos",
-            type: "Medical",
-            category: "Consultation",
-            amount: 800,
-            status: "Approved",
-            img: "/receipt2.png",
-          },
-        ]);
-      }
-    };
-    
-    fetchClaims();
-  }, []);
+// Default leave policy data
+const defaultPolicies = [
+  { id: 1, type: "Vacation Leave", date: "2025-01-01", policyName: "Annual Paid Leave", description: "Employees get 15 days of paid vacation leave per year.", status: "Active" },
+  { id: 2, type: "Sick Leave", date: "2025-01-01", policyName: "Paid Sick Days", description: "Employees can take up to 10 days of paid sick leave annually.", status: "Active" },
+  { id: 3, type: "Maternity Leave", date: "2025-01-01", policyName: "105-Day Maternity Leave", description: "Female employees are entitled to 105 days of paid maternity leave.", status: "Active" },
+  { id: 4, type: "Paternity Leave", date: "2025-01-01", policyName: "7-Day Paternity Leave", description: "Male employees are entitled to 7 days of paid leave upon childbirth of spouse.", status: "Active" },
+  { id: 5, type: "Vacation Leave", date: "2025-01-01", policyName: "Annual Paid Leave", description: "Employees get 15 days of paid vacation leave per year.", status: "Active" },
+  { id: 6, type: "Sick Leave", date: "2025-01-01", policyName: "Paid Sick Days", description: "Employees can take up to 10 days of paid sick leave annually.", status: "Active" },
+  { id: 7, type: "Maternity Leave", date: "2025-01-01", policyName: "105-Day Maternity Leave", description: "Female employees are entitled to 105 days of paid maternity leave.", status: "Active" },
+  { id: 8, type: "Paternity Leave", date: "2025-01-01", policyName: "7-Day Paternity Leave", description: "Male employees are entitled to 7 days of paid leave upon childbirth of spouse.", status: "Active" },
+];
 
-  const [selectedClaim, setSelectedClaim] = useState(null);
-  const [tempStatus, setTempStatus] = useState("Pending");
-  const [zoomedImage, setZoomedImage] = useState(null); // ✅ for zoom
+export default function ClaimsPolicy() {
+  const [policies, setPolicies] = useState([]);
   const [openTermsDialog, setOpenTermsDialog] = useState(false);
 
+  // Fetch leave policies from backend
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      try {
+        const response = await axios.get(hr3.backend.api.leave_policies);
+        let records = [];
 
-  const handleViewClick = (claim) => {
-    setSelectedClaim(claim);
-    setTempStatus(claim.status);
+        if (Array.isArray(response.data)) {
+          records = response.data;
+        } else if (response.data?.data) {
+          records = response.data.data;
+        }
+
+        const mapped = records.map((item) => ({
+          id: item.id,
+          type: item.type || "Unknown Type",
+          date: item.effective_date || "N/A",
+          policyName: item.policy_name || "Untitled Policy",
+          description: item.description || "No description provided",
+          status: item.status || "Active",
+        }));
+
+        setPolicies(mapped.length ? mapped : defaultPolicies);
+      } catch (error) {
+        console.error("Error fetching leave policies:", error);
+        setPolicies(defaultPolicies);
+      }
+    };
+
+    fetchPolicies();
+  }, []);
+
+  // CRUD actions
+  const handleView = (policy) => {
+    alert(`Viewing: ${policy.policyName}`);
   };
 
-  const handleStatusChange = (value) => {
-    setTempStatus(value);
+  const handleUpdate = (policy) => {
+    alert(`Updating: ${policy.policyName}`);
   };
 
-  const handleSubmit = () => {
-    setClaims((prev) =>
-      prev.map((c) =>
-        c.id === selectedClaim.id ? { ...c, status: tempStatus } : c
-      )
-    );
-    setSelectedClaim(null);
+  const handleDelete = (policy) => {
+    if (confirm(`Delete ${policy.policyName}?`)) {
+      setPolicies((prev) => prev.filter((p) => p.id !== policy.id));
+    }
   };
 
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterName, setFilterName] = useState("");
   return (
-    <div className="p-4 -mt-8">
-      {/* ✅ Pending Claims */}
-      <div>
-        <h2 className="text-xl font-bold mb-3">Pending Claims</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="px-10">Employee</TableHead>
-              <TableHead className="px-10">Type</TableHead>
-              <TableHead className="px-10">Category</TableHead>
-              <TableHead className="px-10">Amount</TableHead>
-              <TableHead className="px-10">Status</TableHead>
-              <TableHead className="px-10">Action</TableHead>
+    <div className="-mt-5 px-4 min-h-[800px]">
+      <div className="text-2xl font-bold mb-3">
+        Claims and Reimbursement Policy
+      </div>
+
+      <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md">
+        Add Leave Type
+      </Button>
+
+      <div className="max-h-[full] rounded-lg border pt-5 px-4 space-y-4">
+        {/* filter */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <input
+          type="text"
+          placeholder="Search by name..."
+          className="border rounded-md px-3 py-2 w-50"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+        />
+        <select
+          className="border rounded-md px-3  py-2 w-50"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="">All Status</option>
+          <option value="Pending">Active</option>
+          <option value="Approved">Not Active</option>
+        </select>
+        </div>
+        <div className="min-h-[600px] max-h-[400px] overflow-y-auto">
+          <Table>
+          <TableCaption>Policy Table</TableCaption>
+          <TableHeader >
+            <TableRow className="bg-gray-200">
+              <TableHead className="font-medium w-1/16 text-center">#</TableHead>
+              <TableHead className="font-medium w=-1/4 text-center">Name</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Accrual</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Max Balance</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Carry</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Status</TableHead>
+              <TableHead className="font-medium w-1/4 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {claims
-              .filter((c) => c.status === "Pending")
-              .map((claim) => (
-                <TableRow
-                  key={claim.id}
-                  className="hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <TableCell className="text-md px-10 font-medium">
-                    {claim.employee}
-                  </TableCell>
-                  <TableCell className="text-md px-10">{claim.type}</TableCell>
-                  <TableCell className="text-md px-10">
-                    {claim.category}
-                  </TableCell>
-                  <TableCell className="text-md px-10">
-                    ₱{claim.amount}
-                  </TableCell>
-                  <TableCell className="text-md px-10">
-                    <Badge variant="secondary">{claim.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-md px-10">
-                    <Button onClick={() => handleViewClick(claim)}>View</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+            {policies.map((policy) => (
+              <TableRow key={policy.id}>
+                <TableCell className="text-center">{policy.id}</TableCell>
+                <TableCell className="text-rigth">{policy.type}</TableCell>
+                <TableCell className="text-center">{policy.date}</TableCell>
+                <TableCell className="text-rigth">{policy.policyName}</TableCell>
+                <TableCell className="text-center">{policy.status}</TableCell>
+                <TableCell className="text-center">{policy.status}</TableCell>
+                <TableCell className="text-center space-x-3">
+                  <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600 hover:text-white" onClick={() => handleView(policy)}>View</Button>
+                  <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" onClick={() => handleUpdate(policy)}>Update</Button>
+                  <Button className="bg-red-500 text-white hover:bg-red-600 hover:text-white" variant="outline" size="sm" onClick={() => handleDelete(policy)}>Delete</Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
+        </div>
       </div>
 
-      {/* ✅ Claim Details Dialog */}
-      <Dialog open={!!selectedClaim} onOpenChange={() => setSelectedClaim(null)}>
-        <DialogContent className="max-w-2xl rounded-2xl shadow-lg">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
-              Claim Details
-            </DialogTitle>
-            <DialogDescription>
-              Review and take action on this claim
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedClaim && (
-            <div className="grid grid-cols-2 gap-6 mt-4">
-              {/* Left: Claim Info */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="font-semibold">Employee:</span>
-                  <span>{selectedClaim.employee}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="font-semibold">Type:</span>
-                  <span>{selectedClaim.type}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="font-semibold">Category:</span>
-                  <span>{selectedClaim.category}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="font-semibold">Amount:</span>
-                  <span>₱{selectedClaim.amount}</span>
-                </div>
-                <div>
-                  <label className="font-semibold">Status:</label>
-                  <Select value={tempStatus} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Approved">Approved</SelectItem>
-                      <SelectItem value="Rejected">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Right: Receipt */}
-              <div className="border rounded-xl p-4 bg-muted/30">
-                <p className="font-semibold mb-2">Receipt</p>
-                <div
-                  className="cursor-pointer relative group"
-                  onClick={() => setZoomedImage(selectedClaim.img)} // ✅ set zoom
-                >
-                  <img
-                    src={selectedClaim.img}
-                    alt="Receipt"
-                    className="w-full h-auto rounded-lg object-contain max-h-[280px]"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                    <span className="text-white text-sm">Click to Zoom</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="mt-6">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleSubmit}>Submit</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ✅ Zoom Image Dialog */}
-      <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
-        <DialogContent className="max-w-4xl p-0 bg-transparent border-0 shadow-none">
-          <img
-            src={zoomedImage || ""}
-            alt="Zoomed Receipt"
-            className="w-full h-auto rounded-lg object-contain max-h-[90vh] mx-auto"
-          />
-        </DialogContent>
-      </Dialog>
-      <div className="w-full justify-center flex">
-        <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
+      <div className="w-full flex justify-center items-end">
+        <p
+          className="text-sm text-blue-500 py-5 cursor-pointer"
+          onClick={() => setOpenTermsDialog(true)}
+        >
+          Terms & Conditions
+        </p>
       </div>
-      <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+
+      <TermsDialog open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
     </div>
   );
 }

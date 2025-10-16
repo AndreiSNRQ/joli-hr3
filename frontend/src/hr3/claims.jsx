@@ -117,26 +117,26 @@ export default function ClaimsModule() {
       {/* ✅ Pending Claims */}
       <div>
         <h2 className="text-xl font-bold mb-3">Pending Claims</h2>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="flex flex-col items-center py-6">
-            <span className="text-2xl font-bold text-blue-700">{claims.filter(c => c.status === 'Pending').length}</span>
-            <span className="text-sm text-blue-700">Pending</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="flex flex-col items-center py-6">
-            <span className="text-2xl font-bold text-green-700">{claims.filter(c => c.status === 'Approved').length}</span>
-            <span className="text-sm text-green-700">Approved</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="flex flex-col items-center py-6">
-            <span className="text-2xl font-bold text-red-700">{claims.filter(c => c.status === 'Rejected').length}</span>
-            <span className="text-sm text-red-700">Rejected</span>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
+            <CardContent className="flex flex-col items-center py-6">
+              <span className="text-2xl font-bold text-blue-700">{claims.filter(c => c.status === 'Pending').length}</span>
+              <span className="text-sm text-blue-700">Pending</span>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-50 border-green-200 hover:bg-green-100">
+            <CardContent className="flex flex-col items-center py-6">
+              <span className="text-2xl font-bold text-green-700">{claims.filter(c => c.status === 'Approved').length}</span>
+              <span className="text-sm text-green-700">Approved</span>
+            </CardContent>
+          </Card>
+          <Card className="bg-red-50 border-red-200 hover:bg-red-100">
+            <CardContent className="flex flex-col items-center py-6">
+              <span className="text-2xl font-bold text-red-700">{claims.filter(c => c.status === 'Rejected').length}</span>
+              <span className="text-sm text-red-700">Rejected</span>
+            </CardContent>
+          </Card>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>

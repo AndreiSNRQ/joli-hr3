@@ -202,11 +202,11 @@ export default function Leave() {
   };
 
   return (
-    <div className="px-4 -mt-5">
+    <div className=" -mt-7">
       <div className="space-y-2">
-        <p className="text-lg text-muted-foreground py-2">
+        <h1 className="text-2xl font-bold text-muted-foreground py-2">
           AI Leave Processing & Shift Scheduling using spaCy NLP
-        </p>
+        </h1>
       </div>
 
       <Tabs defaultValue="requests" className="space-y-4">
@@ -218,19 +218,19 @@ export default function Leave() {
         {/* Requests */}
         <TabsContent value="requests" className="">
           <div className="grid grid-cols-3 gap-4 mb-4">
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
               <CardContent className="flex flex-col items-center py-6">
                 <span className="text-2xl font-bold text-blue-700">{leaveRequests.filter(l => l.status === 'Pending').length}</span>
                 <span className="text-sm text-blue-700">Pending</span>
               </CardContent>
             </Card>
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-green-50 border-green-200 hover:bg-green-100">
               <CardContent className="flex flex-col items-center py-6">
                 <span className="text-2xl font-bold text-green-700">{leaveRequests.filter(l => l.status === 'Approved').length}</span>
                 <span className="text-sm text-green-700">Approved</span>
               </CardContent>
             </Card>
-            <Card className="bg-red-50 border-red-200">
+            <Card className="bg-red-50 border-red-200 hover:bg-red-100">
               <CardContent className="flex flex-col items-center py-6">
                 <span className="text-2xl font-bold text-red-700">{leaveRequests.filter(l => l.status === 'Rejected').length}</span>
                 <span className="text-sm text-red-700">Rejected</span>
@@ -239,8 +239,8 @@ export default function Leave() {
           </div>
           <Card>
             <CardContent className="">
-              <div className="overflow-auto rounded-lg border min-h-[635px] max-h-[800px]">
-              <Table>
+              <div className="overflow-auto rounded-lg min-h-[635px] max-h-[800px]">
+              <Table className="px-3">
                 <TableHeader className="bg-gray-100">
                   <TableRow>
                     <TableCell>Employee</TableCell>
@@ -286,7 +286,7 @@ export default function Leave() {
           <Card classname="-py-10">
             <CardContent></CardContent>
             <div className="overflow-auto rounded-lg border min-h-[600px] max-h-[800px]">
-            <Table className="">
+            <Table className="px-3">
               <TableHeader>
                 <TableRow className="bg-gray-200" >
                   <TableCell>Employee</TableCell>

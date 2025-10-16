@@ -39,11 +39,11 @@ export default function Dash() {
 
   return (
     
-    <div className="px-5 -mt-7 ">
+    <div className="px-5 -mt-7 space-y-3">
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-rows-10 gap-3 pt-4">
         {/* Top summary cards */}
-        <div className="gap-3 grid grid-cols-5">
+        <div className="gap-3 row-span-2 grid grid-cols-5">
           <SummaryCard label="Total Present" value={summary.employees} icon={summary.present} />
           <SummaryCard label="Pending Timesheets" value={summary.approvedTimesheets} icon={summary.timesheetI} />
           <SummaryCard label="Request Schedule" value={summary.requestSwap} icon={summary.swap} />
@@ -52,9 +52,9 @@ export default function Dash() {
         </div>
 
         {/* Attendance & Timesheet */}
-        <div className="grid grid-cols-2 gap-4 row-span-3 ">
+        <div className="grid grid-cols-2 gap-4 row-span-4 ">
           {/* Attendance */}
-          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-gray-100">
+          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-blue-50">
             <div className="flex items-center text-lg font-semibold">
               <h1>Attendance per Week</h1>
             </div>
@@ -64,7 +64,7 @@ export default function Dash() {
           </div>
 
           {/* Timesheet */}
-          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-gray-100">
+          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-blue-50">
             <div className="flex items-center text-lg font-semibold">
               <h1>Timesheet Management</h1>
             </div>
@@ -74,46 +74,10 @@ export default function Dash() {
           </div>
         </div>
 
-        {/* Schedule */}
-        <div className="rounded-lg p-3 row-span-3 bg-white shadow border grid grid-cols-2">
-          {/* Left */}
-          <div className="grid grid-rows-7">
-            <div className="flex items-center w-full">
-              <h1 className="text-lg font-semibold">Shift and Schedule</h1>
-            </div>
-            <div>{/* TODO: Add schedule content */}</div>
-          </div>
-
-          {/* Right */}
-          <div className="grid grid-rows-7 w-full px-3">
-            <div className="flex items-center w-full">
-              <h1 className="text-lg font-semibold">Published Schedule</h1>
-            </div>
-            <div className="row-span-6 grid px-3 pt-3 justify-center h-full overflow-auto">
-              {/* <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Employee</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Shift</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>John Doe</TableCell>
-                    <TableCell>2023-08-01</TableCell>
-                    <TableCell>8:00 AM - 4:00 PM</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table> */}
-            </div>
-          </div>
-        </div>
-
         {/* Leave Management and Claims */}
-        <div className="grid grid-cols-2 gap-4 row-span-3">
+        <div className="grid grid-cols-2 gap-4 row-span-4">
           {/* Leave Management */}
-          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-gray-100">
+          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-blue-50">
             <div className="flex items-center text-lg font-semibold">
               <h1>Leave Trend's</h1>
             </div>
@@ -123,7 +87,7 @@ export default function Dash() {
           </div>
 
           {/* Claims and Reimbursements */}
-          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-gray-100">
+          <div className="rounded-lg p-3 bg-white shadow border grid grid-rows-11 hover:bg-blue-50">
             <div className="flex items-center text-lg font-semibold">
               <h1>Claims and Reimbursements</h1>
             </div>
@@ -144,14 +108,14 @@ export default function Dash() {
 // Reusable card component
 function SummaryCard({ label, value, icon }) {
   return (
-    <div className="grid grid-cols-3 border rounded-sm px-5 hover:bg-gray-100">
+    <div className="grid grid-cols-3 bg-pink-50 border-pink-300 shadow-sm border rounded-sm px-5 hover:bg-pink-100">
       <div className="grid grid-rows-2 col-span-2">
-        <div className="text-md text-gray-600 flex items-end">{label}</div>
-        <div className="text-xl font-semibold">{value}</div>
+        <div className="text-md text-pink-500 flex items-end">{label}</div>
+        <div className="text-2xl text-pink-500 font-semibold">{value}</div>
       </div>
       <div className="h-full w-full flex items-center">
-        <div className="w-[82%] rounded-full h-[72%] text-gray-600 flex items-center justify-center bg-gray-200">
-          {icon && React.createElement(icon, { className: "w-8 h-8 text-gray-400" })}
+        <div className="w-[85%] rounded-full h-[50%] flex items-center justify-center bg-pink-300">
+          {icon && React.createElement(icon, { className: "w-8 h-8 text-pink-400" })}
         </div>
       </div>
     </div>

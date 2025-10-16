@@ -97,34 +97,31 @@ export default function scheduleswap() {
 
   return (
     <div className="-mt-5">
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Schedule Swap Request</h1>
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader><CardTitle>Pending</CardTitle></CardHeader>
-            <CardContent className="text-3xl font-bold text-green-600">
-              {data.filter((row) => row.status === "Pending").length}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Approved</CardTitle></CardHeader>
-            <CardContent className="text-3xl font-bold text-yellow-600">
-              {data.filter((row) => row.status === "Approved").length}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Rejected</CardTitle></CardHeader>
-            <CardContent className="text-3xl font-bold text-red-600">
-              {data.filter((row) => row.status === "Rejected").length}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      <div className="h-full overflow-auto" style={{ maxHeight: "500px", overflowY: "auto" }}>
+      <h1 className="text-2xl font-bold mb-3">Correction Requests</h1>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-blue-700">{data.filter(l => l.status === 'Pending').length}</span>
+                <span className="text-sm text-blue-700">Pending</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-200 hover:bg-green-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-green-700">{data.filter(l => l.status === 'Approved').length}</span>
+                <span className="text-sm text-green-700">Approved</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-red-50 border-red-200 hover:bg-red-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-red-700">{data.filter(l => l.status === 'Rejected').length}</span>
+                <span className="text-sm text-red-700">Rejected</span>
+              </CardContent>
+            </Card>
+          </div>
+      <div className="h-full overflow-auto border border-gray-300 p-3 rounded-lg shadow" style={{ maxHeight: "600px", overflowY: "auto" }}>
         <Table className="w-full h-full">
           <TableCaption>Correction Requests</TableCaption>
-          <TableHeader>
+          <TableHeader className="bg-gray-100">
             <TableRow>
               {columns.map((column) => (
                 <TableHead key={column.id}>{column.label}</TableHead>

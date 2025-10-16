@@ -92,44 +92,30 @@ function AttendanceRequest() {
     <div className="p-4 -mt-9">
       <h1 className="text-2xl font-bold mb-6">Attendance Requests</h1>
 
-      {/* Analytics Section */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending</CardTitle>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold text-yellow-600">
-            {requests.filter(r => r.status === "pending").length}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Approved Today</CardTitle>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold text-green-600">
-            {requests.filter(r => r.status === "approved" && r.date === new Date().toISOString().slice(0,10)).length}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Rejected Today</CardTitle>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold text-red-600">
-            {requests.filter(r => r.status === "rejected" && r.date === new Date().toISOString().slice(0,10)).length}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total This Month</CardTitle>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold text-blue-600">
-            {requests.filter(r => r.date && r.date.startsWith(new Date().toISOString().slice(0,7))).length}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Summary Cards*/}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-blue-700">{requests.filter(l => l.status === 'Pending').length}</span>
+                <span className="text-sm text-blue-700">Pending</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-200 hover:bg-green-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-green-700">{requests.filter(l => l.status === 'Approved').length}</span>
+                <span className="text-sm text-green-700">Approved</span>
+              </CardContent>
+            </Card>
+            <Card className="bg-red-50 border-red-200 hover:bg-red-100">
+              <CardContent className="flex flex-col items-center py-6">
+                <span className="text-2xl font-bold text-red-700">{requests.filter(l => l.status === 'Rejected').length}</span>
+                <span className="text-sm text-red-700">Rejected</span>
+              </CardContent>
+            </Card>
+          </div>
 
       {/* Table Section */}
-      <div className="overflow-auto rounded-lg border min-h-[580px] max-h-[580px]">
+      <div className="overflow-auto rounded-lg border min-h-[570px] max-h-[580px]">
         <Table className="w-full">
           <TableCaption>Attendance Requests</TableCaption>
           <TableHeader>
