@@ -90,7 +90,7 @@ function AttendanceRequest() {
 
   return (
     <div className="p-4 -mt-9">
-      <h1 className="text-2xl font-bold mb-6">Attendance Requests</h1>
+      <h1 className="text-2xl font-bold mb-6">Attendance Correction Requests</h1>
 
       {/* Summary Cards*/}
           <div className="grid grid-cols-3 gap-4 mb-4">

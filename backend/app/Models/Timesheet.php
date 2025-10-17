@@ -7,17 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Timesheet extends Model
 {
     protected $table= 'timesheets';
-    protected $primaryKey = 'timesheet_id';
+    protected $primaryKey = 'id';
     
-    protected $fillable = [
-        'id',
-        'shift_name',
-        'start_time',
-        'end_time'
-    ];
+protected $fillable = [
+    'employeeid',
+    'attendance_id',
+    'total_hours',
+    'over_time',
+    'status',
+];
 
     public function employee()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class, 'employeeid', 'employee_id');
     }
 }

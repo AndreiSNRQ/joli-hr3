@@ -44,8 +44,8 @@ const getEventStyle = (event) => {
 // Dummy Data
 const dummyLeaveRequests = [
   { id: 1, employee: "John Doe", type: "Sick Leave", date:"2025-08-31" , startDate: "2025-09-03", endDate: "2025-09-04", reason: "Medical appointment", status: "Pending" },
-  { id: 2, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
-  { id: 3, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Approved" },
+  { id: 2, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Pending" },
+  { id: 3, employee: "Jane Smith", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-10", endDate: "2025-09-15", reason: "Family vacation", status: "Pending" },
   { id: 4, employee: "Alice Johnson", type: "Emergency Leave", date:"2025-08-31", startDate: "2025-09-20", endDate: "2025-09-21", reason: "Family emergency", status: "Approved" },
   { id: 5, employee: "Bob Wilson", type: "Vacation Leave", date:"2025-08-31", startDate: "2025-09-25", endDate: "2025-09-30", reason: "Summer vacation", status: "Approved" }
 ];
@@ -224,16 +224,16 @@ export default function Leave() {
   return (
     <div className=" -mt-7">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-muted-foreground py-2">
+        <h1 className="text-2xl font-bold py-2">
           AI Leave Processing & Shift Scheduling using spaCy NLP
         </h1>
       </div>
 
       <Tabs defaultValue="requests" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="requests">Leave Requests</TabsTrigger>
-          <TabsTrigger value="balances">Leave Balances</TabsTrigger>
-        </TabsList>
+        <TabsList className="w-full mb-3">
+            <TabsTrigger className="hover:border-black" value="requests">Leave Requests</TabsTrigger>
+            <TabsTrigger className="hover:border-black" value="balances">Leave Balances</TabsTrigger>
+          </TabsList>
 
         {/* Requests */}
         <TabsContent value="requests" className="">
@@ -258,8 +258,8 @@ export default function Leave() {
             </Card>
           </div>
           <Card>
-            <CardContent className="">
-              <div className="overflow-auto rounded-lg min-h-[490px] max-h-[600px]">
+            <CardContent className="space-y-3">
+              <div className="overflow-auto rounded-lg min-h-[540px] max-h-[500px]">
                 <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddModalOpen(true)}>
                   Add Leave Request
                 </Button>
@@ -308,9 +308,9 @@ export default function Leave() {
 
         {/* Balances */}
         <TabsContent value="balances" className="">
-          <Card classname="-py-10">
-            <CardContent></CardContent>
-            <div className="overflow-auto rounded-lg border min-h-[600px] max-h-[800px]">
+          <Card>
+            <CardContent className="space-y-3">
+            <div className="overflow-auto min-h-[700px] max-h-[800px]">
             <Table className="px-3">
               <TableHeader>
                 <TableRow className="bg-gray-200" >
@@ -350,6 +350,7 @@ export default function Leave() {
               </TableBody>
             </Table>
             </div>
+            </CardContent>
           </Card>
         </TabsContent>
 
@@ -431,9 +432,9 @@ export default function Leave() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div className="w-full justify-center flex">
+      {/* <div className="w-full justify-center flex">
         <p className="text-sm text-blue-500 py-2 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
-      </div>
+      </div> */}
       <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
       <AddLeaveModal
         open={isAddModalOpen}

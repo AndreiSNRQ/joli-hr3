@@ -113,18 +113,19 @@ export default function ClaimsPolicy() {
   return (
     <div className="-mt-7">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-muted-foreground py-2">
-          Leave Policy Management
+        <h1 className="text-2xl font-bold py-2">
+          Claims and Reimbursements Policy Management
         </h1>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="policies">Leave Policies</TabsTrigger>
-          <TabsTrigger value="types">Leave Types</TabsTrigger>
-        </TabsList>
+
         <TabsContent value="policies">
           <Card>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <TabsList className="w-full"> 
+                <TabsTrigger className="hover:border-black" value="policies">Claims Types</TabsTrigger>
+                <TabsTrigger className="hover:border-black" value="types">Reimbursement Types</TabsTrigger>
+              </TabsList>
               <div className="overflow-auto rounded-lg min-h-[630px] max-h-[630px]">
                 <div className="flex flex-wrap gap-3 mb-4">
                   <input
@@ -134,54 +135,36 @@ export default function ClaimsPolicy() {
                     value={filterName}
                     onChange={(e) => setFilterName(e.target.value)}
                   />
-                  <select
-                    className="border rounded-md px-3 py-2 w-50"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
                 </div>
                 {/* Cards */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <Card className="min-h-[500px] max-w-[full] bg-gray-50 hover:bg-gray-100">
+                <div className="gap-4 mb-4">
+                  <Card className="min-h-[550px] max-w-[full] bg-gray-50 hover:bg-gray-100">
                     <CardContent>
                       <div className="flex flex-row justify-between">
-                        <h1 className="text-lg font-semibold">Key Guidelines:</h1>
+                        <h1 className="text-lg font-semibold">Claims Types:</h1>
                         <div>
-                          <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddPolicyModalOpen(true)}>Add Guidelines</Button>
+                          <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddPolicyModalOpen(true)}>Add Claims Type</Button>
                         </div>
                       </div>
                       <Table>
                         <TableRow>
-                          <TableHead className="w-7/16 border-r">Name</TableHead>
+                          <TableHead className="">Name</TableHead>
+                          <TableHead>Eligibility</TableHead>
+                          <TableHead>Document Required</TableHead>
                           <TableHead>Description</TableHead>
                           </TableRow>
                         <TableRow className="text-wrap">
-                          <TableCell className="border-r">sfsdfsd</TableCell>
-                          <TableCell className="max-w-xs whitespace-normal break-words">If multiple employees request leave simultaneously, approval is on a first-come, first-served basis or business needs.</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Medical/Health Claim</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Employee who incurred medical expenses</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Medical certificate, receipts, SSS/PhilHealth claim forms</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">Usually filed through HR or insurance provider; may require pre-approval.</TableCell>
                         </TableRow>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                  <Card className="min-h-[500px] bg-gray-50 hover:bg-gray-100">
-                    <CardContent>
-                      <div className="flex flex-row justify-between">
-                          <h1 className="text-lg font-semibold">Restrictions:</h1>
-                          <div>
-                            <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md">Add Restriction</Button>
-                          </div>
-                      </div>
-                      <Table>
-                        <TableRow>
-                          <TableHead className="w-1/16 border-r text-center">#</TableHead>
-                          <TableHead>Description</TableHead>
-                          </TableRow>
-                        <TableRow>
-                          <TableCell className="border-r text-center">1</TableCell>
-                          <TableCell>fasjfsdfajkfnadsjfnsdjfnshajkdfndafkd</TableCell>
+
+                        <TableRow className="text-wrap">
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Accident / Incident Claim</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Employees injured at work</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Accident report, medical records</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">Can be filed via company or Pag-IBIG/SSS Work Injury benefits.</TableCell>
                         </TableRow>
                       </Table>
                     </CardContent>
@@ -189,19 +172,21 @@ export default function ClaimsPolicy() {
                 </div>
               </div>
             </CardContent>
-          </Card>      <div className="w-full flex justify-center items-end">
+          </Card>      
+          {/* <div className="w-full flex justify-center items-end">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
         </TabsContent>
         <TabsContent value="types">
           <Card>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <TabsList className="w-full"> 
+                <TabsTrigger className="hover:border-black" value="policies">Claims Types</TabsTrigger>
+                <TabsTrigger className="hover:border-black" value="types">Reimbursement Types</TabsTrigger>
+              </TabsList>
               <div className="overflow-auto rounded-lg min-h-[630px] max-h-[630px]">
-                <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddTypeModalOpen(true)}>
-                  Add Leave Type
-                </Button>
                 <div className="flex flex-wrap gap-3 mb-4">
                   <input
                     type="text"
@@ -210,56 +195,52 @@ export default function ClaimsPolicy() {
                     value={filterName}
                     onChange={(e) => setFilterName(e.target.value)}
                   />
-                  <select
-                    className="border rounded-md px-3 py-2 w-50"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
                 </div>
-                <Table className="px-3">
-                  <TableHeader className="bg-gray-100">
-                    <TableRow>
-                      <TableHead className="font-medium w-1/16 text-center">#</TableHead>
-                      <TableHead className="font-medium w=-1/4 text-center">Name</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Eligibility</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Duration</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Pay</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Notes</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Status</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {policies.map((policy) => (
-                      <TableRow key={policy.id}>
-                        <TableCell className="text-center">{policy.id}</TableCell>
-                        <TableCell className="text-right">{policy.name}</TableCell>
-                        <TableCell className="text-center">{policy.eligibility}</TableCell>
-                        <TableCell className="text-right">{policy.duration}</TableCell>
-                        <TableCell className="text-center">{policy.pay}</TableCell>
-                        <TableCell className="text-center">{policy.note}</TableCell>
-                        <TableCell className="text-center">{policy.status}</TableCell>
-                        <TableCell className="text-center space-x-3">
-                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600 hover:text-white" onClick={() => handleView(policy)}>View</Button>
-                          <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" onClick={() => handleUpdate(policy)}>Update</Button>
-                          <Button className="bg-red-500 text-white hover:bg-red-600 hover:text-white" variant="outline" size="sm" onClick={() => handleDelete(policy)}>Delete</Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                {/* Cards */}
+                <div className="gap-4 mb-4">
+                  <Card className="min-h-[550px] bg-gray-50 hover:bg-gray-100">
+                    <CardContent>
+                      <div className="flex flex-row justify-between">
+                          <h1 className="text-lg font-semibold">Restrictions:</h1>
+                          <div>
+                            <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md">Add Reimbursement Type</Button>
+                          </div>
+                      </div>
+                      <Table>
+                        <TableRow>
+                          <TableHead className="">Name</TableHead>
+                          <TableHead>Eligibility</TableHead>
+                          <TableHead>Coverage / Limit</TableHead>
+                          <TableHead>Document Required</TableHead>
+                          <TableHead>Description</TableHead>
+                          </TableRow>
+                        <TableRow className="text-wrap">
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Medical / Dental / Optical Reimbursement</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">All regular employees</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">ctual cost up to company cap</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">Receipts, prescription</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">ypically annual limit; HR verifies before payout.</TableCell>
+                        </TableRow>
+
+                        <TableRow className="text-wrap">
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Transportation / Travel Reimbursement</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Employees traveling for work</TableCell>
+                          <TableCell className="border-r max-w-xs whitespace-normal break-words">Actual cost or per diem</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">Receipts, travel order</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">Paid via payroll or expense report.</TableCell>
+                        </TableRow>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </CardContent>
-          </Card>
-          <div className="w-full flex justify-center items-end">
+          </Card>  
+          {/* <div className="w-full flex justify-center items-end">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
         </TabsContent>
       </Tabs>
 

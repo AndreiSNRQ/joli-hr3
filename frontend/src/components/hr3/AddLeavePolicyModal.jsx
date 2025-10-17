@@ -11,13 +11,13 @@ export default function AddLeavePolicyModal({ open, onOpenChange, onSubmit, poli
           <DialogTitle>Add Leave Policy</DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
-          <Input
+          <Input className="border"
             placeholder="Policy Name"
             value={policyData.name}
             onChange={e => setPolicyData({ ...policyData, name: e.target.value })}
             required
           />
-          <textarea
+          <textarea className="border rounded-md px-3 py-2 w-full"
             placeholder="Description"
             value={policyData.description}
             onChange={e => setPolicyData({ ...policyData, description: e.target.value })}

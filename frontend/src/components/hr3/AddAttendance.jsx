@@ -91,7 +91,7 @@ const handleSubmit = async (e) => {
     const response = await axios.post(hr3.backend.api.attendance, payload);
     if (response.status === 201) {
       const data = response.data;
-      alert(`Attendance created for ${data.name} on ${data.date}\nClock In: ${data.timeIn}\nClock Out: ${data.timeOut}`);
+      alert(`Attendance created for ${data.name}\nClock In: ${data.timeIn}\nClock Out: ${data.timeOut}`);
       window.location.reload();
     }
   } catch (error) {
@@ -181,19 +181,9 @@ const handleSubmit = async (e) => {
           )}
         </div>
         
-        <div>
-          <label className="block mb-2">Date</label>
-          <Input 
-            type="date" 
-            value={formData.date}
-            onChange={(e) => setFormData({...formData, date: e.target.value})}
-            required
-          />
-        </div>
-        
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block mb-2">Clock In</label>
+            <label className="block mb-2">Time In</label>
             <Input 
               type="time" 
               value={formData.timeIn}
@@ -224,7 +214,7 @@ const handleSubmit = async (e) => {
           </div>
 
           <div>
-            <label className="block mb-2">Clock Out</label>
+            <label className="block mb-2">Time Out</label>
             <Input 
               type="time" 
               value={formData.timeOut}
@@ -235,37 +225,6 @@ const handleSubmit = async (e) => {
         
         <Button type="submit">Submit</Button>
       </form>
-      {Array.isArray(attendanceRecords) && attendanceRecords.length > 0 && (
-        <div className="mt-6">
-          <h4 className="font-medium mb-2">Attendance Records</h4>
-          <table className="min-w-full bg-white border">
-            <thead>
-              <tr>
-                <th className="border px-2 py-1">Date</th>
-                <th className="border px-2 py-1">Clock In</th>
-                <th className="border px-2 py-1">Break Start</th>
-                <th className="border px-2 py-1">Break End</th>
-                <th className="border px-2 py-1">Clock Out</th>
-                <th className="border px-2 py-1">Total</th>
-                <th className="border px-2 py-1">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceRecords.map(record => (
-                <tr key={record.attendance_id}>
-                  <td className="border px-2 py-1">{record.date}</td>
-                  <td className="border px-2 py-1">{record.timeIn}</td>
-                  <td className="border px-2 py-1">{record.breakStart}</td>
-                  <td className="border px-2 py-1">{record.breakEnd}</td>
-                  <td className="border px-2 py-1">{record.timeOut}</td>
-                  <td className="border px-2 py-1">{record.total}</td>
-                  <td className="border px-2 py-1">{record.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </DialogContent>
   );
 }

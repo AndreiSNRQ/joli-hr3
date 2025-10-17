@@ -18,6 +18,7 @@ import {
   FileCheckIcon,
   CalendarPlusIcon,
   CalendarCheckIcon,
+  DoorOpenIcon,
 } from "lucide-react"
 import { Link } from "react-router"
 import { NavMain } from "@/components/nav-main"
@@ -57,18 +58,18 @@ const data = {
     },
     {
       NavGroup: {
-        NavLabel: 'Time and Attendance',
+        NavLabel: 'Time and Attendance System',
         NavItems: [
           {
             title: "Time and Attendance",
             url: '/attendance',
             icon: ClockIcon,
           },
-          {
-            title: "Attendance Requests",
-            url: '/attendance-requests',
-            icon: FileIcon,
-          },
+          // {
+          //   title: "Attendance Requests",
+          //   url: '/attendance-requests',
+          //   icon: FileIcon,
+          // },
         ],
       }
     },
@@ -96,18 +97,18 @@ const data = {
     },
     {
       NavGroup: {
-        NavLabel: 'Shift and Schedule',
+        NavLabel: 'Shift and Schedule Management',
         NavItems: [
           {
-            title: "Shift Management",
+            title: "Shift and Schedule",
             url: '/schedule',
             icon: CalendarPlusIcon,
           },
-          {
-            title: "Swap Requests",
-            url: '/scheduleswap',
-            icon: FileIcon,
-          },
+          // {
+          //   title: "Swap Requests",
+          //   url: '/scheduleswap',
+          //   icon: FileIcon,
+          // },
         ],
       }
     },
@@ -116,9 +117,9 @@ const data = {
         NavLabel: 'Leave Management',
         NavItems: [
           {
-            title: "Leave Requests",
+            title: "Leave Management",
             url: '/leave',
-            icon: FileIcon,
+            icon: DoorOpenIcon,
           },
           {
             title: "Leave Policy Configuration",
@@ -133,7 +134,7 @@ const data = {
         NavLabel: 'Claims and Reimbursements',
         NavItems: [
           {
-            title: "Claims Requests",
+            title: "Claims and Reimbursements",
             url: '/claims',
             icon: CirclePoundSterlingIcon,
           },

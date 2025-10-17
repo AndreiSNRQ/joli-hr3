@@ -10,7 +10,7 @@ class CreateAttendanceTable extends Migration
     {
         Schema::create('attendance', function (Blueprint $table) {
             $table->id('attendance_id');
-            $table->integer('employee_id')->comment('Reference to employees.id');
+            $table->integer('employee_id')->unique()->comment('Reference to employees.id');
             $table->time('clock_in')->nullable();
             $table->time('clock_out')->nullable();
             $table->time('break_start')->nullable();

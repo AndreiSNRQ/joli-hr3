@@ -69,10 +69,17 @@ export default function Timesheet() {
     (filterStatus === "" || row.status.toLowerCase() === filterStatus.toLowerCase())
   );
 
-  const handleApprove = (row) => {
-    setData(prev => prev.map(item =>
-      item.id === row.id ? { ...item, status: "Approved" } : item
-    ));
+  const handleApprove = async (row) => {
+    try {
+      // Send status update to backend
+      await axios.put(`${hr3.backend.api.timesheet}/${row.id}`, { status: "Approve" });
+      setData(prev => prev.map(item =>
+        item.id === row.id ? { ...item, status: "Approved" } : item
+      ));
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status");
+    }
   };
 
   const handleEdit = (row) => {
@@ -107,7 +114,7 @@ export default function Timesheet() {
         >
           <option value="">All Status</option>
           <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
+          <option value="Approve">Approved</option>
           <option value="Rejected">Rejected</option>
         </select>
       </div>
@@ -166,14 +173,14 @@ export default function Timesheet() {
         </Table>
       </div>
 
-      <div className="w-full justify-center flex">
+      {/* <div className="w-full justify-center flex">
         <p
           className="text-sm text-blue-500 py-5 cursor-pointer"
           onClick={() => setOpenTermsDialog(true)}
         >
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
 
       <TermsDialog open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
       {selectedEmployee && (

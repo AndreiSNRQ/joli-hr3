@@ -105,7 +105,7 @@ export default function TimesheetRequest() {
   return (
     <div className="h-full -mt-5 px-4">
       <div>
-        <h1 className="text-2xl font-bold mb-4">Correction Request</h1>
+        <h1 className="text-2xl font-bold mb-4">Timesheet Correction Request</h1>
         {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-4 mb-4">
             <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
@@ -184,9 +184,9 @@ export default function TimesheetRequest() {
           </TableBody>
         </Table>
       </div>
-      <div className="w-full justify-center flex">
+      {/* <div className="w-full justify-center flex">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
-      </div>
+      </div> */}
       <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
     </div>
 

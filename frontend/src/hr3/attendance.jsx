@@ -35,7 +35,7 @@ export default function Attendance() {
     { id: "breakStart", label: "Start Break" },
     { id: "breakEnd", label: "End Break" },
     { id: "timeOut", label: "Time Out" },
-    { id: "total", label: "Total" },
+    { id: "total", label: "Total"},
     { id: "status", label: "Status" },
     { id: "schedule", label: "Schedule Time" },
     { id: "actions", label: "Action" },
@@ -125,26 +125,6 @@ export default function Attendance() {
     <div className="px-4">
       <h1 className="text-2xl font-bold -mt-5 mb-4">Attendance</h1>
 
-      {/* Summary Cards */}
-      {/* <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader><CardTitle>Present</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-green-600"> {presentCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Absent</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-red-600">{absentCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Late</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-yellow-600">{lateCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>On Leave</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold text-blue-600">{leaveCount}</CardContent>
-        </Card>
-      </div> */}
-
           <div className="grid grid-cols-3 gap-4 mb-4">
             <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
               <CardContent className="flex flex-col items-center py-6">
@@ -217,12 +197,12 @@ export default function Attendance() {
                     {column.id === "actions" ? (
                       <div className="flex gap-2 ">
                         <Button variant="outline" className="p-2 px-4" onClick={() => { setEditRow(row); setEditModalOpen(true); }}>Update</Button>
-                        <Dialog>
+                        {/* <Dialog>
                           <DialogTrigger asChild>
                             <Button className="mx-1" variant="outline">Request Correction</Button>
                           </DialogTrigger>
                           <RequestCorrectionAttendance request={row} />
-                        </Dialog>
+                        </Dialog> */}
                       </div>
                     ) : null}
                   </TableCell>
@@ -242,7 +222,30 @@ export default function Attendance() {
           onSave={async (e) => {
             e.preventDefault();
             try {
-              const response = await axios.put(`${hr3.backend.api.attendance}/${editRow.attendance_id}`, editRow);
+              // Helper to convert 12-hour time (e.g. "9:30 AM") to 24-hour ("09:30")
+              const to24Hour = (time) => {
+                if (!time) return '';
+                // If already in HH:mm format, return as is
+                if (/^\d{2}:\d{2}$/.test(time)) return time;
+                // If in 12-hour format
+                const match = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                if (!match) return '';
+                let [_, hour, minute, ampm] = match;
+                hour = parseInt(hour, 10);
+                if (ampm.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+                if (ampm.toUpperCase() === 'AM' && hour === 12) hour = 0;
+                return `${hour.toString().padStart(2, '0')}:${minute}`;
+              };
+              const payload = {
+                employee_id: editRow.employee_id,
+                clock_in: to24Hour(editRow.timeIn),
+                clock_out: to24Hour(editRow.timeOut),
+                break_start: to24Hour(editRow.breakStart),
+                break_end: to24Hour(editRow.breakEnd),
+                status: editRow.status,
+                // date: editRow.date, // only if needed
+              };
+              const response = await axios.put(`${hr3.backend.api.attendance}/${editRow.attendance_id}`, payload);
               toast.success('Attendance updated successfully!');
               setEditModalOpen(false);
               const formatTime = (datetimeStr) => {
@@ -263,9 +266,9 @@ export default function Attendance() {
           }}
         />
       )}
-      <div className="w-full justify-center flex">
+      {/* <div className="w-full justify-center flex">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
-      </div>
+      </div> */}
       <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
     </div>
   );

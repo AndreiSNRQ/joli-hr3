@@ -33,8 +33,8 @@ export function ApprovedView({ employee, open, onOpenChange }) {
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[38rem]">
-        <DialogHeader>
+      <DialogContent className="min-w-[60rem]">
+        <DialogHeader className="min-w-full">
           <DialogTitle>{Array.isArray(employee) ? employee[0]?.employeeName : employee?.employeeName}</DialogTitle>
           <DialogDescription>
             <Table>
@@ -42,7 +42,7 @@ export function ApprovedView({ employee, open, onOpenChange }) {
                 Approved Timesheet
               </TableHeader>
               <TableHead>
-                <TableRow>
+                <TableRow className="font-normal min-w-full">
                   <TableHead>Date</TableHead>
                   <TableHead>Time-In</TableHead>
                   <TableHead>Start Break</TableHead>
@@ -52,7 +52,7 @@ export function ApprovedView({ employee, open, onOpenChange }) {
                   <TableHead>Total</TableHead>
                 </TableRow>
 
-                <TableRow className="font-normal">
+                <TableRow className="font-normal min-w-full">
                   <TableCell>
                     {Array.isArray(employee) ? employee[0]?.date : employee?.date}
                   </TableCell>
@@ -77,28 +77,6 @@ export function ApprovedView({ employee, open, onOpenChange }) {
                 </TableRow>
               </TableHead>
             </Table>
-          </DialogDescription>
-        </DialogHeader>
-        {/* Proposed Request */}
-        <DialogHeader>
-          <DialogTitle></DialogTitle>
-          <DialogDescription className="text-md">
-              <div className="flex items-center">
-                <h1 className="text-black font-semibold">Date:</h1>
-                <p className="p-1 rounded-sm w-fit text-black" readOnly>{Array.isArray(employee) ? employee[0]?.reqdate : employee?.reqdate}</p>
-              </div>
-              <div className="flex items-center">
-                <h1 className="text-black font-semibold">Type:</h1>
-                <p className="p-1 rounded-sm w-fit text-black capitalize" readOnly>{Array.isArray(employee) ? employee[0]?.type : employee?.type}</p>
-              </div>
-              <div className="flex items-center">
-                <h1 className="text-black font-semibold">Proposed Time:</h1>
-                <p className="p-1 rounded-sm w-fit text-black" readOnly>{Array.isArray(employee) ? employee[0]?.propose : employee?.propose}</p>
-              </div>
-              <div className="flex ">
-                <h1 className="text-black font-semibold">Reason:</h1>
-                <p className="p-1 rounded-sm w-fit text-black capitalize">{Array.isArray(employee) ? employee[0]?.reason : employee?.reason}</p> 
-              </div>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

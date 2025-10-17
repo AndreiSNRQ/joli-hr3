@@ -55,7 +55,7 @@ class AttendanceController extends Controller
             $breakDuration = $breakEnd - $breakStart;
         }
 
-        $diff = $end - $start - $breakDuration;
+        $diff = $end + $start - $breakDuration;
         if ($diff < 0) {
             return "0:00";
         }
@@ -75,8 +75,6 @@ class AttendanceController extends Controller
     {
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees,employee_id',
-            // Remove date requirement
-            //'date'        => 'required|date',
             'clock_in'    => 'nullable|date_format:H:i',
             'clock_out'   => 'nullable|date_format:H:i',
             'break_start' => 'nullable|date_format:H:i',
@@ -85,6 +83,17 @@ class AttendanceController extends Controller
 
         // Set date to now if not provided
         $validated['date'] = now()->toDateString();
+
+        // Check if employee already has attendance for today
+        $existing = Attendance::where('employee_id', $validated['employee_id'])
+            ->whereDate('created_at', now()->toDateString())
+            ->first();
+        if ($existing) {
+            return response()->json([
+                'message' => $existing->employee->name . ' already has an attendance record for today.',
+                'attendance_id' => $existing->attendance_id,
+            ], 409);
+        }
 
         $attendance = Attendance::create($validated);
         
@@ -103,7 +112,6 @@ class AttendanceController extends Controller
             'attendance_id' => $attendance->attendance_id,
             'name' => $attendance->employee->name ?? 'Unknown',
             'employee_id' => $attendance->employee_id,
-            'date' => $attendance->date ?? $attendance->created_at?->toDateString() ?? 'N/A',
             'timeIn' => $attendance->clock_in,
             'breakStart' => $attendance->break_start,
             'breakEnd' => $attendance->break_end,
@@ -121,7 +129,7 @@ class AttendanceController extends Controller
 
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees,employee_id',
-            'date'        => 'nullable|date',
+            //'date'        => 'nullable|date', // removed, date will be auto-filled
             'clock_in'    => 'nullable|date_format:H:i',
             'clock_out'   => 'nullable|date_format:H:i',
             'break_start' => 'nullable|date_format:H:i',
@@ -165,6 +173,33 @@ class AttendanceController extends Controller
             'status' => $this->getStatus($attendance),
         ];
 
+        return response()->json($formattedAttendance);
+    }
+    // GET /api/attendance/{attendance_id}
+    public function show($attendance_id)
+    {
+        $attendance = Attendance::with('employee')->find($attendance_id);
+        if (!$attendance) {
+            return response()->json(['message' => 'Attendance not found'], 404);
+        }
+        $total = $this->calculateHours(
+            $attendance->clock_in,
+            $attendance->clock_out,
+            $attendance->break_start,
+            $attendance->break_end
+        );
+        $formattedAttendance = [
+            'attendance_id' => $attendance->attendance_id,
+            'name' => $attendance->employee->name ?? 'Unknown',
+            'employee_id' => $attendance->employee_id,
+            'date' => $attendance->date ?? $attendance->created_at?->toDateString() ?? 'N/A',
+            'timeIn' => $attendance->clock_in,
+            'breakStart' => $attendance->break_start,
+            'breakEnd' => $attendance->break_end,
+            'timeOut' => $attendance->clock_out,
+            'total' => $total,
+            'status' => $this->getStatus($attendance),
+        ];
         return response()->json($formattedAttendance);
     }
 }

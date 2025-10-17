@@ -15,6 +15,7 @@ import {
   RefreshCwIcon,
   NotepadTextIcon,
   HandCoinsIcon,
+  CalendarCheckIcon
 } from "lucide-react";
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -28,7 +29,7 @@ export default function Dash() {
     claims: claimsData.datasets[0].data.reduce((a, b) => a + b, 0),
     present: Building2Icon,
     timesheetI: NotepadTextIcon,
-    swap: RefreshCwIcon,
+    swap: CalendarCheckIcon,
     claimsI: HandCoinsIcon,
     leave: StickyNoteIcon,
   };
@@ -43,9 +44,9 @@ export default function Dash() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 pt-4">
         <SummaryCard label="Total Present" value={summary.employees} icon={summary.present} />
         <SummaryCard label="Pending Timesheets" value={summary.approvedTimesheets} icon={summary.timesheetI} />
-        <SummaryCard label="Request Schedule" value={summary.requestSwap} icon={summary.swap} />
-        <SummaryCard label="Leave Requests" value={summary.leaveRequests} icon={summary.leave} />
-        <SummaryCard label="Claims & Reimbursements" value={summary.claims} icon={summary.claimsI} />
+        <SummaryCard label="Published Schedule" value={summary.requestSwap} icon={summary.swap} />
+        <SummaryCard label="Pending Leave Requests" value={summary.leaveRequests} icon={summary.leave} />
+        <SummaryCard label=" Pending Claims & Reimbursements" value={summary.claims} icon={summary.claimsI} />
       </div>
 
       {/* Attendance & Timesheet */}
@@ -83,14 +84,14 @@ export default function Dash() {
       </div>
 
       {/* Footer */}
-      <div className="w-full flex justify-center">
+      {/* <div className="w-full flex justify-center">
         <p
           className="text-sm text-blue-500 py-5 cursor-pointer hover:underline"
           onClick={() => setOpenTermsDialog(true)}
         >
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }

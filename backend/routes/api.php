@@ -48,6 +48,8 @@ Route::apiResource('/attendance-correction-request',AttendanceCorrectionRequestC
 
 // TIMESHEET
 Route::get('/timesheet', [TimesheetController::class, 'index']);
+Route::get('/timesheet/attendance/{attendance_id}', [TimesheetController::class, 'attendanceToTimesheet']);
+Route::put('/timesheet/{id}', [TimesheetController::class, 'update']);
 Route::post('/timesheet', [TimesheetController::class, 'store']);
 
 // SHIFT AND SCHEDULE
@@ -67,3 +69,5 @@ Route::delete('/shift/{id}', [ShiftController::class, 'destroy']);
 Route::get('/employee_schedule/{id}', [EmployeeScheduleController::class, 'getScheduleEmployee']);
 Route::get('/employee-schedule/assigned/{shift_id}', [EmployeeScheduleController::class, 'getAssignedEmployees']);
 Route::post('/employee_schedule/{id}/publish', [EmployeeScheduleController::class, 'publish']);
+// Get a single attendance record by ID
+Route::get('/attendance/{attendance_id}', [AttendanceController::class, 'show']);

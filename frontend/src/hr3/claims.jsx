@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import TermsDialog from "@/components/hr3/TermsDialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function ClaimsModule() {
   const [claims, setClaims] = useState([]);
@@ -114,70 +115,160 @@ export default function ClaimsModule() {
 
   return (
     <div className="p-6 -mt-10">
-      {/* ✅ Pending Claims */}
-      <div>
-        <h2 className="text-xl font-bold mb-3">Pending Claims</h2>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
-            <CardContent className="flex flex-col items-center py-6">
-              <span className="text-2xl font-bold text-blue-700">{claims.filter(c => c.status === 'Pending').length}</span>
-              <span className="text-sm text-blue-700">Pending</span>
-            </CardContent>
-          </Card>
-          <Card className="bg-green-50 border-green-200 hover:bg-green-100">
-            <CardContent className="flex flex-col items-center py-6">
-              <span className="text-2xl font-bold text-green-700">{claims.filter(c => c.status === 'Approved').length}</span>
-              <span className="text-sm text-green-700">Approved</span>
-            </CardContent>
-          </Card>
-          <Card className="bg-red-50 border-red-200 hover:bg-red-100">
-            <CardContent className="flex flex-col items-center py-6">
-              <span className="text-2xl font-bold text-red-700">{claims.filter(c => c.status === 'Rejected').length}</span>
-              <span className="text-sm text-red-700">Rejected</span>
-            </CardContent>
-          </Card>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="px-10">Employee</TableHead>
-              <TableHead className="px-10">Type</TableHead>
-              <TableHead className="px-10">Category</TableHead>
-              <TableHead className="px-10">Amount</TableHead>
-              <TableHead className="px-10">Status</TableHead>
-              <TableHead className="px-10">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {claims
-              .filter((c) => c.status === "Pending")
-              .map((claim) => (
-                <TableRow
-                  key={claim.id}
-                  className="hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <TableCell className="text-md px-10 font-medium">
-                    {claim.employee}
-                  </TableCell>
-                  <TableCell className="text-md px-10">{claim.type}</TableCell>
-                  <TableCell className="text-md px-10">
-                    {claim.category}
-                  </TableCell>
-                  <TableCell className="text-md px-10">
-                    ₱{claim.amount}
-                  </TableCell>
-                  <TableCell className="text-md px-10">
-                    <Badge variant="secondary">{claim.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-md px-10">
-                    <Button onClick={() => handleViewClick(claim)}>View</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </div>
-
+      <Tabs defaultValue="claims" className="space-y-4">
+        <TabsContent value="claims">
+          {/* ✅ Pending Claims */}
+          <div>
+            <h2 className="text-xl font-bold mb-3">Claims</h2>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
+                <CardContent className="flex flex-col items-center py-6">
+                  <span className="text-2xl font-bold text-blue-700">{claims.filter(c => c.status === 'Pending').length}</span>
+                  <span className="text-sm text-blue-700">Pending</span>
+                </CardContent>
+              </Card>
+              <Card className="bg-green-50 border-green-200 hover:bg-green-100">
+                <CardContent className="flex flex-col items-center py-6">
+                  <span className="text-2xl font-bold text-green-700">{claims.filter(c => c.status === 'Approved').length}</span>
+                  <span className="text-sm text-green-700">Approved</span>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50 border-red-200 hover:bg-red-100">
+                <CardContent className="flex flex-col items-center py-6">
+                  <span className="text-2xl font-bold text-red-700">{claims.filter(c => c.status === 'Rejected').length}</span>
+                  <span className="text-sm text-red-700">Rejected</span>
+                </CardContent>
+              </Card>
+            </div>
+            <TabsList className="w-full mb-3 ">
+              <TabsTrigger className=" hover:border-black" value="claims">Claims</TabsTrigger>
+              <TabsTrigger className=" hover:border-black" value="reimbursements">Reimbursements</TabsTrigger>
+            </TabsList>
+            <Card className="w-full min-h-[571px]">
+              <CardContent>
+                <div>
+                  <Button>Request Claim</Button>
+                </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-10">Employee</TableHead>
+                    <TableHead className="px-10">Type</TableHead>
+                    <TableHead className="px-10">Category</TableHead>
+                    <TableHead className="px-10">Amount</TableHead>
+                    <TableHead className="px-10">Status</TableHead>
+                    <TableHead className="px-10">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {claims
+                    .filter((c) => c.status === "Pending")
+                    .map((claim) => (
+                      <TableRow
+                        key={claim.id}
+                        className="hover:bg-muted/50 transition-colors cursor-pointer"
+                      >
+                        <TableCell className="text-md px-10 font-medium">
+                          {claim.employee}
+                        </TableCell>
+                        <TableCell className="text-md px-10">{claim.type}</TableCell>
+                        <TableCell className="text-md px-10">
+                          {claim.category}
+                        </TableCell>
+                        <TableCell className="text-md px-10">
+                          ₱{claim.amount}
+                        </TableCell>
+                        <TableCell className="text-md px-10">
+                          <Badge variant="secondary">{claim.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-md px-10">
+                          <Button onClick={() => handleViewClick(claim)}>View</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="reimbursements">
+          {/* ✅ Pending Reimbursements */}
+          <div>
+            <h2 className="text-xl font-bold mb-3">Reimbursements</h2>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100">
+                <CardContent className="flex flex-col items-center py-6">
+                  <span className="text-2xl font-bold text-blue-700">{claims.filter(c => c.status === 'Pending').length}</span>
+                  <span className="text-sm text-blue-700">Pending</span>
+                </CardContent>
+              </Card>
+              <Card className="bg-green-50 border-green-200 hover:bg-green-100">
+                <CardContent className="flex flex-col items-center py-6">
+                  <span className="text-2xl font-bold text-green-700">{claims.filter(c => c.status === 'Approved').length}</span>
+                  <span className="text-sm text-green-700">Approved</span>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50 border-red-200 hover:bg-red-100">
+                <CardContent className="flex flex-col items-center py-6">
+                  <span className="text-2xl font-bold text-red-700">{claims.filter(c => c.status === 'Rejected').length}</span>
+                  <span className="text-sm text-red-700">Rejected</span>
+                </CardContent>
+              </Card>
+            </div>
+             <TabsList className="w-full mb-3 ">
+              <TabsTrigger className=" hover:border-black" value="claims">Claims</TabsTrigger>
+              <TabsTrigger className=" hover:border-black" value="reimbursements">Reimbursements</TabsTrigger>
+            </TabsList>
+            <Card className="w-full min-h-[580px]">
+              <CardContent>
+                <div>
+                  <Button>Request Reimbursement</Button>
+                </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-10">Employee</TableHead>
+                    <TableHead className="px-10">Type</TableHead>
+                    <TableHead className="px-10">Category</TableHead>
+                    <TableHead className="px-10">Amount</TableHead>
+                    <TableHead className="px-10">Status</TableHead>
+                    <TableHead className="px-10">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {claims
+                    .filter((c) => c.status === "Pending")
+                    .map((claim) => (
+                      <TableRow
+                        key={claim.id}
+                        className="hover:bg-muted/50 transition-colors cursor-pointer"
+                      >
+                        <TableCell className="text-md px-10 font-medium">
+                          {claim.employee}
+                        </TableCell>
+                        <TableCell className="text-md px-10">{claim.type}</TableCell>
+                        <TableCell className="text-md px-10">
+                          {claim.category}
+                        </TableCell>
+                        <TableCell className="text-md px-10">
+                          ₱{claim.amount}
+                        </TableCell>
+                        <TableCell className="text-md px-10">
+                          <Badge variant="secondary">{claim.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-md px-10">
+                          <Button onClick={() => handleViewClick(claim)}>View</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
       {/* ✅ Claim Details Dialog */}
       <Dialog open={!!selectedClaim} onOpenChange={() => setSelectedClaim(null)}>
         <DialogContent className="max-w-2xl rounded-2xl shadow-lg">
@@ -189,7 +280,6 @@ export default function ClaimsModule() {
               Review and take action on this claim
             </DialogDescription>
           </DialogHeader>
-
           {selectedClaim && (
             <div className="grid grid-cols-2 gap-6 mt-4">
               {/* Left: Claim Info */}
@@ -264,10 +354,10 @@ export default function ClaimsModule() {
           />
         </DialogContent>
       </Dialog>
-      <div className="w-full justify-center flex">
-        <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
-      </div>
-      <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+        {/* <div className="w-full justify-center flex">
+          <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
+        </div>
+        <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} /> */}
 
     </div>
   );

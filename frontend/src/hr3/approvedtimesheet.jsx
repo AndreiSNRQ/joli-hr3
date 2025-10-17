@@ -58,8 +58,10 @@ export default function ApprovedTimesheet() {
         const mappedRecords = records.map(record => ({
           id: record.id,
           employeeName: record.employeeName || 'Unknown',
+          department: record.department || 'N/A',
+          position: record.position || 'N/A',
           date: record.work_date || new Date().toISOString().split('T')[0],
-          status: 'Pending',
+          status: 'approve',
           timeIn: record.start_time || '00:00',
           timeOut: record.end_time || '00:00',
           breakIn: '12:00',
@@ -78,42 +80,12 @@ export default function ApprovedTimesheet() {
   }, []);
 
   const uniqueEmployees = getUniqueEmployees(data);
-
-  const handleApprove = (row) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === row.id ? { ...item, status: "Approved" } : item
-      )
-    );
-  };
-
   const [filterStatus, setFilterStatus] = useState("");
   const [filterName, setFilterName] = useState("");
 
   return (
     <div className="h-full overflow-auto -mt-5 px-4">
       <h1 className="text-2xl font-bold mb-4">Approved Timesheets</h1>
-      {/* Summary Cards */}
-          {/* <div className="grid grid-cols-3 gap-4 mb-4">
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="flex flex-col items-center py-6">
-                <span className="text-2xl font-bold text-blue-700">{data.filter(l => l.status === 'Pending').length}</span>
-                <span className="text-sm text-blue-700">Pending</span>
-              </CardContent>
-            </Card>
-            <Card className="bg-green-50 border-green-200">
-              <CardContent className="flex flex-col items-center py-6">
-                <span className="text-2xl font-bold text-green-700">{data.filter(l => l.status === 'Approved').length}</span>
-                <span className="text-sm text-green-700">Approved</span>
-              </CardContent>
-            </Card>
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="flex flex-col items-center py-6">
-                <span className="text-2xl font-bold text-red-700">{data.filter(l => l.status === 'Rejected').length}</span>
-                <span className="text-sm text-red-700">Rejected</span>
-              </CardContent>
-            </Card>
-          </div> */}
       <div className="overflow-auto rounded-lg px-3 border min-h-[750px] max-h-[800px]">
         <div className="flex gap-4 my-4">
           <input
@@ -123,30 +95,19 @@ export default function ApprovedTimesheet() {
           value={filterName}
           onChange={(e) => setFilterName(e.target.value)}
           />
-          <select
-            className="border rounded-md px-3 py-2 w-48"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-          </select>
         </div>
   
       <Table className="w-full">
-        <TableCaption>Pending Timesheets</TableCaption>
         <TableHeader className="bg-gray-100">
           <TableCell>Name</TableCell>
           <TableCell>Department</TableCell>
-          <TableCell>Type</TableCell>
+          <TableCell>Position</TableCell>
           <TableCell>Action</TableCell>
         </TableHeader>
-        <TableBody className="bg-white p-2">
+        <TableBody className="p-2">
           {(showAllRecords
-            ? data.filter((row) => row.employeeName === currentEmployee?.employeeName)
-            : uniqueEmployees
+            ? data.filter((row) => row.employeeName === currentEmployee?.employeeName && row.status === "approve")
+            : uniqueEmployees.filter((row) => row.status === "approve")
           ).map((row) => (
             <TableRow key={row.id}>
               {/* Timesheet dialog per employee */}
@@ -168,7 +129,7 @@ export default function ApprovedTimesheet() {
               )}
               <TableCell>{row.employeeName}</TableCell>
               <TableCell>{row.department}</TableCell>
-              <TableCell>{row.type}</TableCell>
+              <TableCell>{row.position}</TableCell>
               <TableCell className="flex gap-2">
                 <Button
                   variant="outline"
@@ -188,10 +149,10 @@ export default function ApprovedTimesheet() {
         </TableBody>
       </Table>
       </div>
-      <div className="w-full justify-center flex">
+      {/* <div className="w-full justify-center flex">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>Terms & Conditions</p>
-      </div>
-      <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+      </div> */}
+      {/* <TermsDialog className="w-full" open={openTermsDialog} onOpenChange={setOpenTermsDialog} /> */}
     </div>
   );
 }

@@ -14,13 +14,20 @@ class Attendance extends Model
     protected $fillable = [
         'attendance_id',
         'employee_id',
-        'date',
         'clock_in',
         'break_start',
         'break_end',
         'clock_out',
         'updated_at',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            $model->created_at = now()->toDateString();
+        });
+    }
 
     // 🔗 Relation: Attendance belongs to an employee
     public function employee()

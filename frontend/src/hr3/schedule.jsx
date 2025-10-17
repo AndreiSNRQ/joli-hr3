@@ -1192,14 +1192,14 @@ export default function Schedule() {
         )}
       </Dialog>
 
-      <div className="w-full justify-center flex">
+      {/* <div className="w-full justify-center flex">
         <p
           className="text-sm text-blue-500 py-5 cursor-pointer"
           onClick={() => setOpenTermsDialog(true)}
         >
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
       <TermsDialog
         className="w-full"
         open={openTermsDialog}

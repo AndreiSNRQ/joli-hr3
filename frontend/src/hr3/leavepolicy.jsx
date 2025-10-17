@@ -113,18 +113,18 @@ export default function LeavePolicy() {
   return (
     <div className="-mt-7">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-muted-foreground py-2">
+        <h1 className="text-2xl font-bold py-2">
           Leave Policy Management
         </h1>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="policies">Leave Policies</TabsTrigger>
-          <TabsTrigger value="types">Leave Types</TabsTrigger>
-        </TabsList>
         <TabsContent value="policies">
           <Card>
             <CardContent>
+                      <TabsList className="w-full mb-3">
+          <TabsTrigger className="hover:border-black" value="policies">Leave Policies</TabsTrigger>
+          <TabsTrigger className="hover:border-black" value="types">Leave Types</TabsTrigger>
+        </TabsList>
               <div className="overflow-auto rounded-lg min-h-[630px] max-h-[630px]">
                 <div className="flex flex-wrap gap-3 mb-4">
                   <input
@@ -189,16 +189,22 @@ export default function LeavePolicy() {
                 </div>
               </div>
             </CardContent>
-          </Card>      <div className="w-full flex justify-center items-end">
+          </Card>      
+          {/* <div className="w-full flex justify-center items-end">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
         </TabsContent>
         <TabsContent value="types">
           <Card>
             <CardContent>
+              <TabsList className="w-full mb-3">
+                <TabsTrigger className="hover:border-black" value="policies">Leave Policies</TabsTrigger>
+                <TabsTrigger className="hover:border-black" value="types">Leave Types</TabsTrigger>
+              </TabsList>
               <div className="overflow-auto rounded-lg min-h-[630px] max-h-[630px]">
+                <div className="flex flex-row justify-between">
                 <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddTypeModalOpen(true)}>
                   Add Leave Type
                 </Button>
@@ -220,31 +226,29 @@ export default function LeavePolicy() {
                     <option value="Inactive">Inactive</option>
                   </select>
                 </div>
+                </div>
                 <Table className="px-3">
                   <TableHeader className="bg-gray-100">
-                    <TableRow>
-                      <TableHead className="font-medium w-1/16 text-center">#</TableHead>
-                      <TableHead className="font-medium w=-1/4 text-center">Name</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Eligibility</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Duration</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Pay</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Notes</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Status</TableHead>
-                      <TableHead className="font-medium w-1/4 text-center">Actions</TableHead>
+                    <TableRow className="text-start">
+                      <TableHead className="font-medium ">#</TableHead>
+                      <TableHead className="font-medium ">Name</TableHead>
+                      <TableHead className="font-medium ">Eligibility</TableHead>
+                      <TableHead className="font-medium ">Duration</TableHead>
+                      <TableHead className="font-medium ">Pay</TableHead>
+                      <TableHead className="font-medium ">Status</TableHead>
+                      <TableHead className="font-medium text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {policies.map((policy) => (
                       <TableRow key={policy.id}>
-                        <TableCell className="text-center">{policy.id}</TableCell>
-                        <TableCell className="text-right">{policy.name}</TableCell>
-                        <TableCell className="text-center">{policy.eligibility}</TableCell>
-                        <TableCell className="text-right">{policy.duration}</TableCell>
-                        <TableCell className="text-center">{policy.pay}</TableCell>
-                        <TableCell className="text-center">{policy.note}</TableCell>
-                        <TableCell className="text-center">{policy.status}</TableCell>
+                        <TableCell className="">{policy.id}</TableCell>
+                        <TableCell className="">{policy.name}</TableCell>
+                        <TableCell className=" pl-3">{policy.eligibility}</TableCell>
+                        <TableCell className=" pl-3">{policy.duration}</TableCell>
+                        <TableCell className=" pl-3">{policy.pay}</TableCell>
+                        <TableCell className="">{policy.status}</TableCell>
                         <TableCell className="text-center space-x-3">
-                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600 hover:text-white" onClick={() => handleView(policy)}>View</Button>
                           <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" onClick={() => handleUpdate(policy)}>Update</Button>
                           <Button className="bg-red-500 text-white hover:bg-red-600 hover:text-white" variant="outline" size="sm" onClick={() => handleDelete(policy)}>Delete</Button>
                         </TableCell>
@@ -255,11 +259,11 @@ export default function LeavePolicy() {
               </div>
             </CardContent>
           </Card>
-          <div className="w-full flex justify-center items-end">
+          {/* <div className="w-full flex justify-center items-end">
         <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>
           Terms & Conditions
         </p>
-      </div>
+      </div> */}
         </TabsContent>
       </Tabs>
 
