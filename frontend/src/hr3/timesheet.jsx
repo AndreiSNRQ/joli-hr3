@@ -133,6 +133,7 @@ export default function Timesheet() {
               <TableHead className="text-center">Break Out</TableHead>
               <TableHead className="text-center">Time Out</TableHead>
               <TableHead className="text-center">Total</TableHead>
+              <TableHead className="text-center">Schedule</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
@@ -148,6 +149,7 @@ export default function Timesheet() {
                 <TableCell className="text-center">{row.breakOut}</TableCell>
                 <TableCell className="text-center">{row.timeOut}</TableCell>
                 <TableCell className="text-center">{row.total}</TableCell>
+                <TableCell className="text-center">{row.timeIn}</TableCell>
                 <TableCell className="text-center">{row.status}</TableCell>
                 <TableCell className="text-center">
                   <Button

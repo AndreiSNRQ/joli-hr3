@@ -91,7 +91,7 @@ const handleSubmit = async (e) => {
     const response = await axios.post(hr3.backend.api.attendance, payload);
     if (response.status === 201) {
       const data = response.data;
-      alert(`Attendance created for ${data.name}\nClock In: ${data.timeIn}\nClock Out: ${data.timeOut}`);
+      alert(`Attendance Submitted`);
       window.location.reload();
     }
   } catch (error) {
@@ -184,12 +184,7 @@ const handleSubmit = async (e) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block mb-2">Time In</label>
-            <Input 
-              type="time" 
-              value={formData.timeIn}
-              onChange={(e) => setFormData({...formData, timeIn: e.target.value})}
-
-            />
+            <Input type="time" value={formData.timeIn} onChange={(e) => setFormData({...formData, timeIn: e.target.value})}/>
           </div>
           
           <div>

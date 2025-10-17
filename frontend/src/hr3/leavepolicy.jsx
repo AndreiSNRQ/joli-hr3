@@ -156,13 +156,19 @@ export default function LeavePolicy() {
                       </div>
                       <Table>
                         <TableRow>
-                          <TableHead className="w-7/16 border-r">Name</TableHead>
+                          <TableHead className="border-r">#</TableHead>
                           <TableHead>Description</TableHead>
+                          {/* <TableHead>Action</TableHead> */}
                           </TableRow>
                         <TableRow className="text-wrap">
-                          <TableCell className="border-r">sfsdfsd</TableCell>
-                          <TableCell className="max-w-xs whitespace-normal break-words">If multiple employees request leave simultaneously, approval is on a first-come, first-served basis or business needs.</TableCell>
+                          <TableCell className="border-r">1</TableCell>
+                          <TableCell className="whitespace-normal break-words">If multiple employees request leave simultaneously, approval is on a first-come, first-served basis or business needs.</TableCell>
                         </TableRow>
+                        {/* <TableRow className="text-wrap">
+                          <Button>View</Button>
+                          <Button>Update</Button>
+                          <Button>Delete</Button>
+                        </TableRow> */}
                       </Table>
                     </CardContent>
                   </Card>
@@ -181,7 +187,7 @@ export default function LeavePolicy() {
                           </TableRow>
                         <TableRow>
                           <TableCell className="border-r text-center">1</TableCell>
-                          <TableCell>fasjfsdfajkfnadsjfnsdjfnshajkdfndafkd</TableCell>
+                          <TableCell>Blackout periods where leave cannot be taken (e.g., peak business periods).</TableCell>
                         </TableRow>
                       </Table>
                     </CardContent>

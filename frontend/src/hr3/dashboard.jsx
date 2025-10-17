@@ -144,7 +144,7 @@ const timesheetData = {
   labels: ["Approved", "Pending"],
   datasets: [
     {
-      data: [90, 10],
+      data: [5, 10],
       backgroundColor: ["#4CAF50", "#FFC107"],
     },
   ],
