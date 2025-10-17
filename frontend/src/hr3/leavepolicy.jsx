@@ -1,266 +1,283 @@
-import React, { useState } from "react";
-import { Eye, Edit, Trash2, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { hr3 } from "@/api/hr3";
+import TermsDialog from "@/components/hr3/TermsDialog";
+import AddLeavePolicyModal from "@/components/hr3/AddLeavePolicyModal";
+import AddLeaveTypeModal from "@/components/hr3/AddLeaveTypeModal";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-export default function LeavePolicyModal() {
-  const [modalType, setModalType] = useState(null);
-  const [selectedPolicy, setSelectedPolicy] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+const defaultPolicies = [
+  { id: 1, name: "Vacation Leave", eligibility: "All regular employees", duration: "5-15 days/year", pay: "Full Pay",note: "For rest, travel, personal; accrual may depend on tenure.", status: "Active" },
+  { id: 2, name: "Sick Leave", eligibility: "All regular employees", duration: "5-15 days/year", pay: "Full Pay",note: "For illness or medical appointments; may be combined with vacation leave.", status: "Active" },
+  { id: 3, name: "Emergency/Bereaverment Leave", eligibility: "All regular employees", duration: "3-5 days/year", pay: "Full Pay",note: "For death or serious illness of family members.", status: "Active" },
+  { id: 4, name: "Study / Educational Leave", eligibility: "Employees attending approved courses", duration: "Varies", pay: "Paid/Unpaid",note: "Requires manager approval; company-specific..", status: "Active" },
+  { id: 5, name: "Unpaid Leave", eligibility: "Employees who exhausted paid leave", duration: "Varies", pay: "None",note: "For personal reasons; requires management approval.", status: "Active" },
+  { id: 2, name: "Sick Leave", eligibility: "All regular employees", duration: "5-15 days/year", pay: "Full Pay",note: "For illness or medical appointments; may be combined with vacation leave.", status: "Active" },
+];
 
-  const [policies, setPolicies] = useState([
-    { id: 1, name: "Annual Leave", accrual: "1.5 days/mo", max: "30 days", carry: true, status: "active" },
-    { id: 2, name: "Sick Leave", accrual: "1 day/mo", max: "15 days", carry: false, status: "active" },
-  ]);
+export default function LeavePolicy() {
+  const [policies, setPolicies] = useState([]);
+  const [openTermsDialog, setOpenTermsDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("policies");
+  const [isAddPolicyModalOpen, setIsAddPolicyModalOpen] = useState(false);
+  const [isAddTypeModalOpen, setIsAddTypeModalOpen] = useState(false);
+  const [newPolicy, setNewPolicy] = useState({ name: "", description: "", maxDays: "" });
+  const [newType, setNewType] = useState({ name: "", description: "", maxDays: "" });
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterName, setFilterName] = useState("");
 
-  const openModal = (type, policy = null) => {
-    setModalType(type);
-    setSelectedPolicy(policy);
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      try {
+        const response = await axios.get(hr3.backend.api.leave_policies);
+        let records = [];
+        if (Array.isArray(response.data)) {
+          records = response.data;
+        } else if (response.data?.data) {
+          records = response.data.data;
+        }
+        const mapped = records.map((item) => ({
+          id: item.id,
+          type: item.type || "Unknown Type",
+          date: item.effective_date || "N/A",
+          policyName: item.policy_name || "Untitled Policy",
+          description: item.description || "No description provided",
+          status: item.status || "Active",
+        }));
+        setPolicies(mapped.length ? mapped : defaultPolicies);
+      } catch (error) {
+        console.error("Error fetching leave policies:", error);
+        setPolicies(defaultPolicies);
+      }
+    };
+    fetchPolicies();
+  }, []);
+
+  const handleView = (policy) => {
+    alert(`Viewing: ${policy.policyName}`);
   };
-
-  const closeModal = () => {
-    setModalType(null);
-    setSelectedPolicy(null);
+  const handleUpdate = (policy) => {
+    alert(`Updating: ${policy.policyName}`);
   };
-
-  const handleDelete = (id) => {
-    setPolicies(policies.filter((p) => p.id !== id));
-    closeModal();
-  };
-
-  const handleSave = () => {
-    if (modalType === "add") {
-      setPolicies([...policies, { ...selectedPolicy, id: Date.now() }]);
-    } else if (modalType === "edit") {
-      setPolicies(policies.map((p) => (p.id === selectedPolicy.id ? selectedPolicy : p)));
+  const handleDelete = (policy) => {
+    if (confirm(`Delete ${policy.policyName}?`)) {
+      setPolicies((prev) => prev.filter((p) => p.id !== policy.id));
     }
-    closeModal();
   };
-
-  const totalPages = Math.ceil(policies.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedPolicies = policies.slice(startIndex, startIndex + rowsPerPage);
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+  const handleAddPolicy = (e) => {
+    e.preventDefault();
+    setPolicies([
+      ...policies,
+      {
+        id: policies.length + 1,
+        name: newPolicy.name,
+        eligibility: newPolicy.eligibility,
+        duration: newPolicy.duration,
+        pay: newPolicy.pay,
+        note: newPolicy.note,
+        status: "Active",
+        maxDays: newPolicy.maxDays
+      }
+    ]);
+    setIsAddPolicyModalOpen(false);
+    setNewPolicy({ name: "", description: "", maxDays: "" });
+  };
+    const handleAddTypePolicy = (e) => {
+    e.preventDefault();
+    setPolicies([
+      ...policies,
+      {
+        id: policies.length + 1,
+        name: newPolicy.name,
+        eligibility: newPolicy.eligibility,
+        duration: newPolicy.duration,
+        pay: newPolicy.pay,
+        note: newPolicy.note,
+        status: "Active",
+        maxDays: newPolicy.maxDays
+      }
+    ]);
+  
+    setIsAddPolicyModalOpen(false);
+    setNewPolicy({ name: "", description: "", maxDays: "" });
+    };
+  const handleAddType = (e) => {
+    e.preventDefault();
+    setIsAddTypeModalOpen(false);
+    setNewType({ name: "", description: "", maxDays: "" });
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between mb-4">
-        <h1 className="text-xl font-bold">Leave Policy Configuration</h1>
-        <Button
-          onClick={() =>
-            openModal("add", { name: "", accrual: "", max: "", carry: false, status: "active" })
-          }
-        >
-          <Plus size={16} className="mr-1" /> Add Policy
-        </Button>
+    <div className="-mt-7">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-muted-foreground py-2">
+          Leave Policy Management
+        </h1>
       </div>
-
-      <div className="bg-white shadow rounded-lg overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-left text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Accrual</th>
-              <th className="px-4 py-2">Max</th>
-              <th className="px-4 py-2">Carry</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedPolicies.map((p) => (
-              <tr key={p.id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3">{p.name}</td>
-                <td className="px-4 py-3">{p.accrual}</td>
-                <td className="px-4 py-3">{p.max}</td>
-                <td className="px-4 py-3">{p.carry ? "Yes" : "No"}</td>
-                <td className="px-4 py-3">{p.status}</td>
-                <td className="px-4 py-3 flex justify-center gap-2">
-                  <button
-                    onClick={() => openModal("view", p)}
-                    className="text-blue-600 hover:text-blue-800"
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="policies">Leave Policies</TabsTrigger>
+          <TabsTrigger value="types">Leave Types</TabsTrigger>
+        </TabsList>
+        <TabsContent value="policies">
+          <Card>
+            <CardContent>
+              <div className="overflow-auto rounded-lg min-h-[630px] max-h-[630px]">
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search by name..."
+                    className="border rounded-md px-3 py-2 w-50"
+                    value={filterName}
+                    onChange={(e) => setFilterName(e.target.value)}
+                  />
+                  <select
+                    className="border rounded-md px-3 py-2 w-50"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
                   >
-                    <Eye size={16} />
-                  </button>
-                  <button
-                    onClick={() => openModal("edit", p)}
-                    className="text-green-600 hover:text-green-800"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => openModal("delete", p)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4 text-sm">
-        <p>
-          Page {currentPage} of {totalPages}
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+                {/* Cards */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <Card className="min-h-[500px] max-w-[full] bg-gray-50 hover:bg-gray-100">
+                    <CardContent>
+                      <div className="flex flex-row justify-between">
+                        <h1 className="text-lg font-semibold">Key Guidelines:</h1>
+                        <div>
+                          <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddPolicyModalOpen(true)}>Add Guidelines</Button>
+                        </div>
+                      </div>
+                      <Table>
+                        <TableRow>
+                          <TableHead className="w-7/16 border-r">Name</TableHead>
+                          <TableHead>Description</TableHead>
+                          </TableRow>
+                        <TableRow className="text-wrap">
+                          <TableCell className="border-r">sfsdfsd</TableCell>
+                          <TableCell className="max-w-xs whitespace-normal break-words">If multiple employees request leave simultaneously, approval is on a first-come, first-served basis or business needs.</TableCell>
+                        </TableRow>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                  <Card className="min-h-[500px] bg-gray-50 hover:bg-gray-100">
+                    <CardContent>
+                      <div className="flex flex-row justify-between">
+                          <h1 className="text-lg font-semibold">Restrictions:</h1>
+                          <div>
+                            <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md">Add Restriction</Button>
+                          </div>
+                      </div>
+                      <Table>
+                        <TableRow>
+                          <TableHead className="w-1/16 border-r text-center">#</TableHead>
+                          <TableHead>Description</TableHead>
+                          </TableRow>
+                        <TableRow>
+                          <TableCell className="border-r text-center">1</TableCell>
+                          <TableCell>fasjfsdfajkfnadsjfnsdjfnshajkdfndafkd</TableCell>
+                        </TableRow>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>      <div className="w-full flex justify-center items-end">
+        <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>
+          Terms & Conditions
         </p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={() => goToPage(currentPage - 1)}
-          >
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={() => goToPage(currentPage + 1)}
-          >
-            Next
-          </Button>
-        </div>
       </div>
+        </TabsContent>
+        <TabsContent value="types">
+          <Card>
+            <CardContent>
+              <div className="overflow-auto rounded-lg min-h-[630px] max-h-[630px]">
+                <Button className="bg-blue-500 text-white px-4 mb-3 rounded-md" onClick={() => setIsAddTypeModalOpen(true)}>
+                  Add Leave Type
+                </Button>
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search by name..."
+                    className="border rounded-md px-3 py-2 w-50"
+                    value={filterName}
+                    onChange={(e) => setFilterName(e.target.value)}
+                  />
+                  <select
+                    className="border rounded-md px-3 py-2 w-50"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+                <Table className="px-3">
+                  <TableHeader className="bg-gray-100">
+                    <TableRow>
+                      <TableHead className="font-medium w-1/16 text-center">#</TableHead>
+                      <TableHead className="font-medium w=-1/4 text-center">Name</TableHead>
+                      <TableHead className="font-medium w-1/4 text-center">Eligibility</TableHead>
+                      <TableHead className="font-medium w-1/4 text-center">Duration</TableHead>
+                      <TableHead className="font-medium w-1/4 text-center">Pay</TableHead>
+                      <TableHead className="font-medium w-1/4 text-center">Notes</TableHead>
+                      <TableHead className="font-medium w-1/4 text-center">Status</TableHead>
+                      <TableHead className="font-medium w-1/4 text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {policies.map((policy) => (
+                      <TableRow key={policy.id}>
+                        <TableCell className="text-center">{policy.id}</TableCell>
+                        <TableCell className="text-right">{policy.name}</TableCell>
+                        <TableCell className="text-center">{policy.eligibility}</TableCell>
+                        <TableCell className="text-right">{policy.duration}</TableCell>
+                        <TableCell className="text-center">{policy.pay}</TableCell>
+                        <TableCell className="text-center">{policy.note}</TableCell>
+                        <TableCell className="text-center">{policy.status}</TableCell>
+                        <TableCell className="text-center space-x-3">
+                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600 hover:text-white" onClick={() => handleView(policy)}>View</Button>
+                          <Button variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 hover:text-white" onClick={() => handleUpdate(policy)}>Update</Button>
+                          <Button className="bg-red-500 text-white hover:bg-red-600 hover:text-white" variant="outline" size="sm" onClick={() => handleDelete(policy)}>Delete</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="w-full flex justify-center items-end">
+        <p className="text-sm text-blue-500 py-5 cursor-pointer" onClick={() => setOpenTermsDialog(true)}>
+          Terms & Conditions
+        </p>
+      </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* View Modal */}
-      <Dialog open={modalType === "view"} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>View Policy</DialogTitle>
-          </DialogHeader>
-          {selectedPolicy && (
-            <div className="space-y-3 py-3 text-sm">
-              <p>
-                <strong>Name:</strong> {selectedPolicy.name}
-              </p>
-              <p>
-                <strong>Accrual:</strong> {selectedPolicy.accrual}
-              </p>
-              <p>
-                <strong>Max:</strong> {selectedPolicy.max}
-              </p>
-              <p>
-                <strong>Carry:</strong> {selectedPolicy.carry ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Status:</strong> {selectedPolicy.status}
-              </p>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={closeModal}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add / Edit Modal */}
-      <Dialog open={modalType === "add" || modalType === "edit"} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {modalType === "add" ? "Add New Policy" : "Edit Policy"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-3">
-            <div>
-              <Label>Name</Label>
-              <Input
-                value={selectedPolicy?.name || ""}
-                onChange={(e) =>
-                  setSelectedPolicy({ ...selectedPolicy, name: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label>Accrual</Label>
-              <Input
-                value={selectedPolicy?.accrual || ""}
-                onChange={(e) =>
-                  setSelectedPolicy({ ...selectedPolicy, accrual: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label>Max</Label>
-              <Input
-                value={selectedPolicy?.max || ""}
-                onChange={(e) =>
-                  setSelectedPolicy({ ...selectedPolicy, max: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label>Carry</Label>
-              <select
-                className="w-full border rounded p-2"
-                value={selectedPolicy?.carry ? "Yes" : "No"}
-                onChange={(e) =>
-                  setSelectedPolicy({ ...selectedPolicy, carry: e.target.value === "Yes" })
-                }
-              >
-                <option>Yes</option>
-                <option>No</option>
-              </select>
-            </div>
-            <div>
-              <Label>Status</Label>
-              <select
-                className="w-full border rounded p-2"
-                value={selectedPolicy?.status || "active"}
-                onChange={(e) =>
-                  setSelectedPolicy({ ...selectedPolicy, status: e.target.value })
-                }
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              {modalType === "add" ? "Add" : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Modal */}
-      <Dialog open={modalType === "delete"} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Policy</DialogTitle>
-          </DialogHeader>
-          {selectedPolicy && (
-            <p>
-              Are you sure you want to delete <strong>{selectedPolicy.name}</strong>?
-            </p>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleDelete(selectedPolicy.id)}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <TermsDialog open={openTermsDialog} onOpenChange={setOpenTermsDialog} />
+      <AddLeavePolicyModal
+        open={isAddPolicyModalOpen}
+        onOpenChange={setIsAddPolicyModalOpen}
+        onSubmit={handleAddPolicy}
+        policyData={newPolicy}
+        setPolicyData={setNewPolicy}
+      />
+      <AddLeaveTypeModal
+        open={isAddTypeModalOpen}
+        onOpenChange={setIsAddTypeModalOpen}
+        onSubmit={handleAddType}
+        policyData={newType}
+        setPolicyData={setNewType}
+      />
     </div>
   );
 }
